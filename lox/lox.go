@@ -9,6 +9,7 @@ import (
 )
 
 type Lox struct {
+	hasError bool
 }
 
 func NewLox() *Lox {
@@ -22,7 +23,11 @@ func (l *Lox) RunFile(path string) (err error) {
 		return
 	}
 
-	l.run(script)
+	err = l.run(script)
+	if err != nil {
+		err = fmt.Errorf("running script: %w", err)
+		return
+	}
 
 	return
 }
@@ -37,7 +42,7 @@ func (l *Lox) RunPrompt() (err error) {
 			break
 		}
 
-		l.run(line)
+		_ = l.run(line)
 	}
 
 	err = lineReader.Err()
@@ -65,4 +70,13 @@ func (l *Lox) run(script []byte) (err error) {
 	}
 
 	return
+}
+
+func (l *Lox) Error(line int, message string) {
+	l.hasError = true
+	l.report(line, "", message)
+}
+
+func (l *Lox) report(line int, where string, message string) {
+	_, _ = fmt.Fprintf(os.Stderr, `[line %d] Error%s: %s`, line, where, message)
 }

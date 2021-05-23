@@ -32,12 +32,14 @@ func main() {
 			err = fmt.Errorf("running prompt: %w", err)
 			return
 		}
+		exitCode = 65
 		return
 	}
 
 	err = runner.RunFile(os.Args[0])
 	if err != nil {
 		err = fmt.Errorf("running script file: %w", err)
+		exitCode = 65
 		return
 	}
 }
