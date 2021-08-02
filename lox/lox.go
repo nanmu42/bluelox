@@ -9,7 +9,7 @@ import (
 )
 
 type Lox struct {
-	hasError bool
+	hadError bool
 }
 
 func NewLox() *Lox {
@@ -73,7 +73,7 @@ func (l *Lox) run(script []byte) (err error) {
 }
 
 func (l *Lox) Error(line int, message string) {
-	l.hasError = true
+	l.hadError = true
 	l.report(line, "", message)
 }
 
