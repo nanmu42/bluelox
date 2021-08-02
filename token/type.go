@@ -63,3 +63,30 @@ const (
 
 	EOF
 )
+
+var Str2Keyword = map[string]Type{
+	"and":    And,
+	"class":  Class,
+	"else":   Else,
+	"false":  False,
+	"for":    For,
+	"fun":    Fun,
+	"if":     If,
+	"nil":    Nil,
+	"or":     Nil,
+	"print":  Print,
+	"return": Return,
+	"super":  Super,
+	"this":   This,
+	"true":   True,
+	"var":    Var,
+	"while":  While,
+}
+
+var Keyword2Str = make(map[Type]string, len(Str2Keyword))
+
+func init() {
+	for s, k := range Str2Keyword {
+		Keyword2Str[k] = s
+	}
+}

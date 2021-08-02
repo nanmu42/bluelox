@@ -9,7 +9,6 @@ import (
 )
 
 type Lox struct {
-	hadError bool
 }
 
 func NewLox() *Lox {
@@ -35,6 +34,7 @@ func (l *Lox) RunFile(path string) (err error) {
 func (l *Lox) RunPrompt() (err error) {
 	lineReader := bufio.NewScanner(os.Stdin)
 
+	fmt.Printf("> ")
 	for lineReader.Scan() {
 		fmt.Printf("> ")
 		line := lineReader.Bytes()
@@ -42,7 +42,10 @@ func (l *Lox) RunPrompt() (err error) {
 			break
 		}
 
-		_ = l.run(line)
+		err = l.run(line)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
 	err = lineReader.Err()
@@ -70,13 +73,4 @@ func (l *Lox) run(script []byte) (err error) {
 	}
 
 	return
-}
-
-func (l *Lox) Error(line int, message string) {
-	l.hadError = true
-	l.report(line, "", message)
-}
-
-func (l *Lox) report(line int, where string, message string) {
-	_, _ = fmt.Fprintf(os.Stderr, `[line %d] Error%s: %s`, line, where, message)
 }

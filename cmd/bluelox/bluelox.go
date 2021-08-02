@@ -19,14 +19,14 @@ func main() {
 		}
 	}()
 
-	if len(os.Args) > 0 {
+	if len(os.Args) > 2 {
 		fmt.Println("Usage: bluelox [script]")
 		exitCode = 64
 		return
 	}
 
 	runner := lox.NewLox()
-	if len(os.Args) == 0 {
+	if len(os.Args) == 1 {
 		err = runner.RunPrompt()
 		if err != nil {
 			err = fmt.Errorf("running prompt: %w", err)
@@ -36,7 +36,7 @@ func main() {
 		return
 	}
 
-	err = runner.RunFile(os.Args[0])
+	err = runner.RunFile(os.Args[1])
 	if err != nil {
 		err = fmt.Errorf("running script file: %w", err)
 		exitCode = 65
