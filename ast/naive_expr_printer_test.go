@@ -29,6 +29,20 @@ func TestNaiveExprPrinter(t *testing.T) {
 			wantErr:    false,
 		},
 		{
+			name: "literal nil",
+			expr: &UnaryExpr{
+				Operator: token.Token{
+					Type:    token.Bang,
+					Lexeme:  "!",
+					Literal: nil,
+					Line:    0,
+				},
+				Right: &LiteralExpr{Value: nil},
+			},
+			wantResult: "(! nil)",
+			wantErr:    false,
+		},
+		{
 			name: "textbook",
 			expr: &BinaryExpr{
 				Left: &UnaryExpr{
