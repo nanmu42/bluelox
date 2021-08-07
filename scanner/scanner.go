@@ -252,7 +252,7 @@ func (s *Scanner) identifier() {
 		s.advance()
 	}
 
-	tokenType, ok := token.Str2Keyword[string(s.source[s.start:s.current])]
+	tokenType, ok := token.KeywordMapping[string(s.source[s.start:s.current])]
 	if !ok {
 		tokenType = token.Identifier
 	}

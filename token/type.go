@@ -1,3 +1,5 @@
+//go:generate stringer -type Type
+
 package token
 
 type Type int
@@ -64,7 +66,7 @@ const (
 	EOF
 )
 
-var Str2Keyword = map[string]Type{
+var KeywordMapping = map[string]Type{
 	"and":    And,
 	"class":  Class,
 	"else":   Else,
@@ -81,12 +83,4 @@ var Str2Keyword = map[string]Type{
 	"true":   True,
 	"var":    Var,
 	"while":  While,
-}
-
-var Keyword2Str = make(map[Type]string, len(Str2Keyword))
-
-func init() {
-	for s, k := range Str2Keyword {
-		Keyword2Str[k] = s
-	}
 }
