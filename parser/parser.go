@@ -17,6 +17,25 @@ func NewParser(tokens []token.Token) *Parser {
 	return &Parser{tokens: tokens}
 }
 
+// Parse tokens into expressions.
+//
+// When everything is fine, errs is nil.
+// Otherwise, more than one error may appear,
+// and expr can not be considered valid.
+func (p *Parser) Parse() (expr ast.Expression, errs []error) {
+	for !p.isAtEnd() {
+		var err error
+		expr, err = p.expression()
+		if err != nil {
+			errs = append(errs, err)
+			p.synchronize()
+			continue
+		}
+	}
+
+	return
+}
+
 // expression → equality
 func (p *Parser) expression() (ast.Expression, error) {
 	return p.equality()
@@ -182,6 +201,7 @@ func (p *Parser) unary() (expr ast.Expression, err error) {
 			Operator: operator,
 			Right:    right,
 		}
+		return
 	}
 
 	return p.primary()
@@ -223,7 +243,7 @@ func (p *Parser) primary() (expr ast.Expression, err error) {
 	}
 
 	unexpected := p.peek()
-	err = fmt.Errorf("unexpected token %s at line %d", unexpected.Lexeme, unexpected.Line)
+	err = fmt.Errorf("parsing primary: unexpected token %s %q at line %d", unexpected.Type, unexpected.Lexeme, unexpected.Line)
 	return
 }
 
@@ -235,4 +255,23 @@ func (p *Parser) consume(wantType token.Type) (consumed token.Token, err error) 
 
 	err = fmt.Errorf("want token type %s, got %s", wantType, p.peek().Type)
 	return
+}
+
+// synchronize discards tokens until it thinks it has found a statement boundary.
+func (p *Parser) synchronize() {
+	p.advance()
+
+	for !p.isAtEnd() {
+		if p.previous().Type == token.Semicolon {
+			return
+		}
+
+		switch p.peek().Type {
+		case token.Class, token.Fun, token.Var, token.For,
+			token.If, token.While, token.Print, token.Return:
+			return
+		}
+
+		p.advance()
+	}
 }
