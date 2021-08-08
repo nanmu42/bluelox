@@ -13,13 +13,13 @@ import (
 func TestParser_Parse(t *testing.T) {
 	tests := []struct {
 		name     string
-		tokens   []token.Token
+		tokens   []*token.Token
 		wantExpr ast.Expression
 		wantErrs []error
 	}{
 		{
 			name: "empty",
-			tokens: []token.Token{
+			tokens: []*token.Token{
 				{
 					Type:    token.EOF,
 					Lexeme:  "",
@@ -32,7 +32,7 @@ func TestParser_Parse(t *testing.T) {
 		},
 		{
 			name: "easy",
-			tokens: []token.Token{
+			tokens: []*token.Token{
 				{
 					Type:    token.Bang,
 					Lexeme:  "!",
@@ -53,7 +53,7 @@ func TestParser_Parse(t *testing.T) {
 				},
 			},
 			wantExpr: &ast.UnaryExpr{
-				Operator: token.Token{
+				Operator: &token.Token{
 					Type:    token.Bang,
 					Lexeme:  "!",
 					Literal: nil,
@@ -65,7 +65,7 @@ func TestParser_Parse(t *testing.T) {
 		},
 		{
 			name: "literal nil",
-			tokens: []token.Token{
+			tokens: []*token.Token{
 				{
 					Type:    token.Bang,
 					Lexeme:  "!",
@@ -86,7 +86,7 @@ func TestParser_Parse(t *testing.T) {
 				},
 			},
 			wantExpr: &ast.UnaryExpr{
-				Operator: token.Token{
+				Operator: &token.Token{
 					Type:    token.Bang,
 					Lexeme:  "!",
 					Literal: nil,
@@ -98,7 +98,7 @@ func TestParser_Parse(t *testing.T) {
 		},
 		{
 			name: "literal nil",
-			tokens: []token.Token{
+			tokens: []*token.Token{
 				{
 					Type:    token.Bang,
 					Lexeme:  "!",
@@ -119,7 +119,7 @@ func TestParser_Parse(t *testing.T) {
 				},
 			},
 			wantExpr: &ast.UnaryExpr{
-				Operator: token.Token{
+				Operator: &token.Token{
 					Type:    token.Bang,
 					Lexeme:  "!",
 					Literal: nil,
@@ -131,7 +131,7 @@ func TestParser_Parse(t *testing.T) {
 		},
 		{
 			name: "textbook",
-			tokens: []token.Token{
+			tokens: []*token.Token{
 				{
 					Type:    token.Minus,
 					Lexeme:  "-",
@@ -177,7 +177,7 @@ func TestParser_Parse(t *testing.T) {
 			},
 			wantExpr: &ast.BinaryExpr{
 				Left: &ast.UnaryExpr{
-					Operator: token.Token{
+					Operator: &token.Token{
 						Type:    token.Minus,
 						Lexeme:  "-",
 						Literal: nil,
@@ -185,7 +185,7 @@ func TestParser_Parse(t *testing.T) {
 					},
 					Right: &ast.LiteralExpr{Value: 123},
 				},
-				Operator: token.Token{
+				Operator: &token.Token{
 					Type:    token.Star,
 					Lexeme:  "*",
 					Literal: nil,

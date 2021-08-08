@@ -40,7 +40,7 @@ func (s StubExprVisitor) VisitUnaryExpr(_ *UnaryExpr) (interface{}, error) {
 
 type BinaryExpr struct {
 	Left     Expression
-	Operator token.Token
+	Operator *token.Token
 	Right    Expression
 }
 
@@ -71,7 +71,7 @@ func (b *LiteralExpr) Accept(visitor ExprVisitor) (result interface{}, err error
 }
 
 type UnaryExpr struct {
-	Operator token.Token
+	Operator *token.Token
 	Right    Expression
 }
 

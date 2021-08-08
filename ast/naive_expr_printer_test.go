@@ -17,7 +17,7 @@ func TestNaiveExprPrinter(t *testing.T) {
 		{
 			name: "easy",
 			expr: &UnaryExpr{
-				Operator: token.Token{
+				Operator: &token.Token{
 					Type:    token.Bang,
 					Lexeme:  "!",
 					Literal: nil,
@@ -31,7 +31,7 @@ func TestNaiveExprPrinter(t *testing.T) {
 		{
 			name: "literal nil",
 			expr: &UnaryExpr{
-				Operator: token.Token{
+				Operator: &token.Token{
 					Type:    token.Bang,
 					Lexeme:  "!",
 					Literal: nil,
@@ -46,7 +46,7 @@ func TestNaiveExprPrinter(t *testing.T) {
 			name: "textbook",
 			expr: &BinaryExpr{
 				Left: &UnaryExpr{
-					Operator: token.Token{
+					Operator: &token.Token{
 						Type:    token.Minus,
 						Lexeme:  "-",
 						Literal: nil,
@@ -54,7 +54,7 @@ func TestNaiveExprPrinter(t *testing.T) {
 					},
 					Right: &LiteralExpr{Value: 123},
 				},
-				Operator: token.Token{
+				Operator: &token.Token{
 					Type:    token.Star,
 					Lexeme:  "*",
 					Literal: nil,

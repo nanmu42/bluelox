@@ -16,7 +16,7 @@ import (
 var exprTypes = ExprTypes{
 	{
 		Name:    `BinaryExpr`,
-		Fields:  `Left Expression, Operator token.Token, Right Expression`,
+		Fields:  `Left Expression, Operator *token.Token, Right Expression`,
 		Comment: "",
 	},
 	{
@@ -31,7 +31,7 @@ var exprTypes = ExprTypes{
 	},
 	{
 		Name:    `UnaryExpr`,
-		Fields:  `Operator token.Token, Right Expression`,
+		Fields:  `Operator *token.Token, Right Expression`,
 		Comment: "",
 	},
 }

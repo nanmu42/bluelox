@@ -8,12 +8,12 @@ import (
 )
 
 type Parser struct {
-	tokens []token.Token
+	tokens []*token.Token
 
 	current int
 }
 
-func NewParser(tokens []token.Token) *Parser {
+func NewParser(tokens []*token.Token) *Parser {
 	return &Parser{tokens: tokens}
 }
 
@@ -106,7 +106,7 @@ func (p *Parser) match(tokenType ...token.Type) bool {
 	return false
 }
 
-func (p *Parser) previous() token.Token {
+func (p *Parser) previous() *token.Token {
 	return p.tokens[p.current-1]
 }
 
@@ -118,7 +118,7 @@ func (p *Parser) check(tokenType token.Type) bool {
 	return p.peek().Type == tokenType
 }
 
-func (p *Parser) advance() token.Token {
+func (p *Parser) advance() *token.Token {
 	if !p.isAtEnd() {
 		p.current++
 	}
@@ -130,7 +130,7 @@ func (p *Parser) isAtEnd() bool {
 	return p.peek().Type == token.EOF
 }
 
-func (p *Parser) peek() token.Token {
+func (p *Parser) peek() *token.Token {
 	return p.tokens[p.current]
 }
 
@@ -247,7 +247,7 @@ func (p *Parser) primary() (expr ast.Expression, err error) {
 	return
 }
 
-func (p *Parser) consume(wantType token.Type) (consumed token.Token, err error) {
+func (p *Parser) consume(wantType token.Type) (consumed *token.Token, err error) {
 	if p.check(wantType) {
 		consumed = p.advance()
 		return

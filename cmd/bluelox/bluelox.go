@@ -1,8 +1,11 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+
+	"github.com/nanmu42/bluelox/interpreter"
 
 	"github.com/nanmu42/bluelox/lox"
 )
@@ -39,7 +42,14 @@ func main() {
 	err = runner.RunFile(os.Args[1])
 	if err != nil {
 		err = fmt.Errorf("running script file: %w", err)
-		exitCode = 65
+
+		var runtimeErr *interpreter.RuntimeError
+		if errors.As(err, &runtimeErr) {
+			exitCode = 70
+		} else {
+			exitCode = 65
+		}
+
 		return
 	}
 }

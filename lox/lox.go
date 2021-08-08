@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nanmu42/bluelox/interpreter"
+
+	"github.com/nanmu42/bluelox/parser"
+
 	"github.com/nanmu42/bluelox/scanner"
 )
 
@@ -36,7 +40,6 @@ func (l *Lox) RunPrompt() (err error) {
 
 	fmt.Printf("> ")
 	for lineReader.Scan() {
-		fmt.Printf("> ")
 		line := lineReader.Bytes()
 		if len(line) == 0 {
 			break
@@ -46,6 +49,8 @@ func (l *Lox) RunPrompt() (err error) {
 		if err != nil {
 			fmt.Println(err)
 		}
+
+		fmt.Printf("> ")
 	}
 
 	err = lineReader.Err()
@@ -68,8 +73,17 @@ func (l *Lox) run(script []byte) (err error) {
 		return
 	}
 
-	for _, token := range tokens {
-		fmt.Println(token)
+	p := parser.NewParser(tokens)
+	parsed, errs := p.Parse()
+	if errs != nil {
+		err = errs[0]
+		return
+	}
+
+	i := interpreter.NewInterpreter()
+	err = i.Interpret(parsed)
+	if err != nil {
+		return
 	}
 
 	return
