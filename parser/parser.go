@@ -2,6 +2,8 @@ package parser
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/nanmu42/bluelox/ast"
 	"github.com/nanmu42/bluelox/token"
@@ -13,6 +15,38 @@ type Parser struct {
 	current int
 }
 
+type ParsingErr struct {
+	errs []error
+}
+
+func (p *ParsingErr) Error() string {
+	length := len(p.errs)
+
+	if length == 0 {
+		return "parsing error with 0 detail, maybe there is a problem in implementation"
+	}
+
+	if length == 1 {
+		return fmt.Sprintf("parsing error: %s", p.errs[0])
+	}
+
+	var b strings.Builder
+	_, _ = fmt.Fprintf(&b, "got %d parsing error(s):\n", length)
+
+	for index, err := range p.errs {
+		b.WriteString(strconv.Itoa(index+1) + ". ")
+		b.WriteString(err.Error())
+		b.WriteRune('\n')
+
+		if index >= 9 {
+			b.WriteString("too many errors, more contents omitted...")
+			b.WriteRune('\n')
+		}
+	}
+
+	return b.String()
+}
+
 func NewParser(tokens []*token.Token) *Parser {
 	return &Parser{tokens: tokens}
 }
@@ -22,18 +56,34 @@ func NewParser(tokens []*token.Token) *Parser {
 // When everything is fine, errs is nil.
 // Otherwise, more than one error may appear,
 // and expr can not be considered valid.
-func (p *Parser) Parse() (expr ast.Expression, errs []error) {
+func (p *Parser) Parse() (stmts []ast.Statement, err error) {
+	var errs []error
+
 	for !p.isAtEnd() {
-		var err error
-		expr, err = p.expression()
-		if err != nil {
-			errs = append(errs, err)
+		stmt, stmtErr := p.statement()
+		if stmtErr != nil {
+			errs = append(errs, stmtErr)
 			p.synchronize()
 			continue
 		}
+		stmts = append(stmts, stmt)
+	}
+
+	if len(errs) > 0 {
+		err = &ParsingErr{errs}
+		return
 	}
 
 	return
+}
+
+// statement → exprStmt | printStmt ;
+func (p *Parser) statement() (stmt ast.Statement, err error) {
+	if p.match(token.Print) {
+		return p.printStmt()
+	}
+
+	return p.exprStmt()
 }
 
 // expression → equality
@@ -274,4 +324,38 @@ func (p *Parser) synchronize() {
 
 		p.advance()
 	}
+}
+
+// printStmt → "print" expression ";" ;
+func (p *Parser) printStmt() (stmt ast.Statement, err error) {
+	value, err := p.expression()
+	if err != nil {
+		return
+	}
+
+	_, err = p.consume(token.Semicolon)
+	if err != nil {
+		err = fmt.Errorf("expected ';' after value: %w", err)
+		return
+	}
+
+	stmt = &ast.PrintStmt{Expr: value}
+	return
+}
+
+// exprStmt → expression ";"
+func (p *Parser) exprStmt() (stmt ast.Statement, err error) {
+	value, err := p.expression()
+	if err != nil {
+		return
+	}
+
+	_, err = p.consume(token.Semicolon)
+	if err != nil {
+		err = fmt.Errorf("expected ';' after value: %w", err)
+		return
+	}
+
+	stmt = &ast.ExprStmt{Expr: value}
+	return
 }

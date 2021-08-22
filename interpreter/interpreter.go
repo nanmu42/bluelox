@@ -11,6 +11,7 @@ import (
 )
 
 var _ ast.ExprVisitor = (*Interpreter)(nil)
+var _ ast.StmtVisitor = (*Interpreter)(nil)
 
 type Interpreter struct{}
 
@@ -18,7 +19,7 @@ func NewInterpreter() *Interpreter {
 	return &Interpreter{}
 }
 
-func (i *Interpreter) Interpret(expr ast.Expression) (err error) {
+func (i *Interpreter) Interpret(stmts []ast.Statement) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = &RuntimeError{
@@ -27,12 +28,13 @@ func (i *Interpreter) Interpret(expr ast.Expression) (err error) {
 		}
 	}()
 
-	result, err := i.evaluate(expr)
-	if err != nil {
-		return
+	for _, stmt := range stmts {
+		err = i.execute(stmt)
+		if err != nil {
+			return
+		}
 	}
 
-	fmt.Println(i.stringify(result))
 	return
 }
 
@@ -247,4 +249,23 @@ func (i *Interpreter) stringify(v interface{}) string {
 	}
 
 	return fmt.Sprintf("%v", v)
+}
+
+func (i *Interpreter) VisitExprStmt(v *ast.ExprStmt) (err error) {
+	_, err = i.evaluate(v.Expr)
+	return
+}
+
+func (i *Interpreter) VisitPrintStmt(v *ast.PrintStmt) (err error) {
+	result, err := i.evaluate(v.Expr)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(i.stringify(result))
+	return
+}
+
+func (i *Interpreter) execute(stmt ast.Statement) error {
+	return stmt.Accept(i)
 }

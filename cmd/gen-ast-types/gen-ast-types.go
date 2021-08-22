@@ -13,7 +13,12 @@ import (
 	"strings"
 )
 
-var exprTypes = ExprTypes{
+const (
+	KindExpr = "Expr"
+	KindStmt = "Stmt"
+)
+
+var exprTypes = Types{
 	{
 		Name:    `BinaryExpr`,
 		Fields:  `Left Expression, Operator *token.Token, Right Expression`,
@@ -36,6 +41,19 @@ var exprTypes = ExprTypes{
 	},
 }
 
+var stmtTypes = Types{
+	{
+		Name:    "ExprStmt",
+		Fields:  "Expr Expression",
+		Comment: "",
+	},
+	{
+		Name:    "PrintStmt",
+		Fields:  "Expr Expression",
+		Comment: "",
+	},
+}
+
 var output = flag.String("o", "exprTypes.generated.go", "output file path")
 
 func main() {
@@ -54,9 +72,16 @@ func main() {
 	g.WriteHeader()
 
 	sort.Sort(exprTypes)
-	err = g.WriteExprTypes(exprTypes)
+	err = g.WriteTypes(KindExpr, exprTypes)
 	if err != nil {
-		err = fmt.Errorf("generating content via exprTypes: %w", err)
+		err = fmt.Errorf("generating expr content: %w", err)
+		return
+	}
+
+	sort.Sort(stmtTypes)
+	err = g.WriteTypes(KindStmt, stmtTypes)
+	if err != nil {
+		err = fmt.Errorf("generating stmt content: %w", err)
 		return
 	}
 
@@ -90,17 +115,17 @@ type Type struct {
 	Comment string
 }
 
-type ExprTypes []Type
+type Types []Type
 
-func (t ExprTypes) Len() int {
+func (t Types) Len() int {
 	return len(t)
 }
 
-func (t ExprTypes) Less(i, j int) bool {
+func (t Types) Less(i, j int) bool {
 	return t[i].Name < t[j].Name
 }
 
-func (t ExprTypes) Swap(i, j int) {
+func (t Types) Swap(i, j int) {
 	t[i], t[j] = t[j], t[i]
 }
 
@@ -122,6 +147,10 @@ type Expression interface {
 	Accept(visitor ExprVisitor) (result interface{}, err error)
 }
 
+type Statement interface {
+	Accept(visitor StmtVisitor) (err error)
+}
+
 `)
 }
 
@@ -141,23 +170,23 @@ func (g *Generator) WriteTo(writer io.Writer) (int64, error) {
 	return io.Copy(writer, &g.buf)
 }
 
-func (g *Generator) WriteExprTypes(types ExprTypes) (err error) {
-	err = g.checkExprTypes(types)
+func (g *Generator) WriteTypes(kind string, types Types) (err error) {
+	err = g.checkExprTypes(kind, types)
 	if err != nil {
 		err = fmt.Errorf("checking exprTypes: %w", err)
 		return
 	}
 
-	g.writeExprVisitor(types)
+	g.writeVisitor(kind, types)
 
 	for _, item := range types {
-		g.writeExprType(item)
+		g.writeType(kind, item)
 	}
 
 	return
 }
 
-func (g *Generator) checkExprTypes(types ExprTypes) (err error) {
+func (g *Generator) checkExprTypes(kind string, types Types) (err error) {
 	if len(types) == 0 {
 		err = errors.New("provided 0 type")
 		return
@@ -173,8 +202,8 @@ func (g *Generator) checkExprTypes(types ExprTypes) (err error) {
 			err = fmt.Errorf("name %q at index %d is not exported", item.Name, index)
 			return
 		}
-		if !strings.HasSuffix(item.Name, "Expr") {
-			err = fmt.Errorf("name %q at index %d does not end with Expr", item.Name, index)
+		if !strings.HasSuffix(item.Name, kind) {
+			err = fmt.Errorf("name %q at index %d does not end with %q", item.Name, index, kind)
 			return
 		}
 		if _, ok := nameSet[item.Name]; ok {
@@ -208,13 +237,17 @@ func (g *Generator) linebreak() {
 	g.buf.WriteByte('\n')
 }
 
-func (g *Generator) writeExprVisitor(types ExprTypes) {
-	g.buf.WriteString(`type ExprVisitor interface {`)
+func (g *Generator) writeVisitor(kind string, types Types) {
+	_, _ = fmt.Fprintf(&g.buf, "type %sVisitor interface {", kind)
 	g.linebreak()
 
 	for _, item := range types {
 		g.buf.WriteByte('\t')
-		_, _ = fmt.Fprintf(&g.buf, "Visit%s(v *%s) (result interface{}, err error)", item.Name, item.Name)
+		if kind == KindExpr {
+			_, _ = fmt.Fprintf(&g.buf, "Visit%s(v *%s) (result interface{}, err error)", item.Name, item.Name)
+		} else {
+			_, _ = fmt.Fprintf(&g.buf, "Visit%s(v *%s) (err error)", item.Name, item.Name)
+		}
 		g.linebreak()
 	}
 
@@ -223,22 +256,30 @@ func (g *Generator) writeExprVisitor(types ExprTypes) {
 	g.linebreak()
 
 	// stub visitor
-	g.buf.WriteString(`type StubExprVisitor struct{}
-
-var _ ExprVisitor = StubExprVisitor{}`)
+	_, _ = fmt.Fprintf(&g.buf, "type Stub%sVisitor struct{}", kind)
+	g.linebreak()
+	g.linebreak()
+	g.buf.WriteString(`var _ ExprVisitor = StubExprVisitor{}`)
 	g.linebreak()
 	g.linebreak()
 
 	for _, item := range types {
-		_, _ = fmt.Fprintf(&g.buf, `func (s StubExprVisitor) Visit%s(_ *%s) (interface{}, error) {
+		if kind == KindExpr {
+			_, _ = fmt.Fprintf(&g.buf, `func (s StubExprVisitor) Visit%s(_ *%s) (interface{}, error) {
 	return nil, errors.New("visit func for %s is not implemented")
 }`, item.Name, item.Name, item.Name)
+		} else {
+			_, _ = fmt.Fprintf(&g.buf, `func (s StubExprVisitor) Visit%s(_ *%s) (error) {
+	return errors.New("visit func for %s is not implemented")
+}`, item.Name, item.Name, item.Name)
+		}
+
 		g.linebreak()
 		g.linebreak()
 	}
 }
 
-func (g *Generator) writeExprType(item Type) {
+func (g *Generator) writeType(kind string, item Type) {
 	if item.Comment != "" {
 		g.buf.WriteString("// ")
 		g.buf.WriteString(item.Comment)
@@ -254,13 +295,24 @@ func (g *Generator) writeExprType(item Type) {
 	g.linebreak()
 	g.linebreak()
 
-	_, _ = fmt.Fprintf(&g.buf, "var _ Expression = (*%s)(nil)", item.Name)
+	if kind == KindExpr {
+		_, _ = fmt.Fprintf(&g.buf, "var _ Expression = (*%s)(nil)", item.Name)
+	} else {
+		_, _ = fmt.Fprintf(&g.buf, "var _ Statement = (*%s)(nil)", item.Name)
+	}
 	g.linebreak()
 	g.linebreak()
 
-	_, _ = fmt.Fprintf(&g.buf, `func (b *%s) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	if kind == KindExpr {
+		_, _ = fmt.Fprintf(&g.buf, `func (b *%s) Accept(visitor ExprVisitor) (result interface{}, err error) {
 	return visitor.Visit%s(b)
 }`, item.Name, item.Name)
+	} else {
+		_, _ = fmt.Fprintf(&g.buf, `func (b *%s) Accept(visitor StmtVisitor) (err error) {
+	return visitor.Visit%s(b)
+}`, item.Name, item.Name)
+	}
+
 	g.linebreak()
 	g.linebreak()
 }

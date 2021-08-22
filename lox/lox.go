@@ -74,14 +74,13 @@ func (l *Lox) run(script []byte) (err error) {
 	}
 
 	p := parser.NewParser(tokens)
-	parsed, errs := p.Parse()
-	if errs != nil {
-		err = errs[0]
+	stmts, err := p.Parse()
+	if err != nil {
 		return
 	}
 
 	i := interpreter.NewInterpreter()
-	err = i.Interpret(parsed)
+	err = i.Interpret(stmts)
 	if err != nil {
 		return
 	}

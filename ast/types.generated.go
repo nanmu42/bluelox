@@ -11,6 +11,10 @@ type Expression interface {
 	Accept(visitor ExprVisitor) (result interface{}, err error)
 }
 
+type Statement interface {
+	Accept(visitor StmtVisitor) (err error)
+}
+
 type ExprVisitor interface {
 	VisitBinaryExpr(v *BinaryExpr) (result interface{}, err error)
 	VisitGroupingExpr(v *GroupingExpr) (result interface{}, err error)
@@ -79,4 +83,41 @@ var _ Expression = (*UnaryExpr)(nil)
 
 func (b *UnaryExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
 	return visitor.VisitUnaryExpr(b)
+}
+
+type StmtVisitor interface {
+	VisitExprStmt(v *ExprStmt) (err error)
+	VisitPrintStmt(v *PrintStmt) (err error)
+}
+
+type StubStmtVisitor struct{}
+
+var _ ExprVisitor = StubExprVisitor{}
+
+func (s StubExprVisitor) VisitExprStmt(_ *ExprStmt) error {
+	return errors.New("visit func for ExprStmt is not implemented")
+}
+
+func (s StubExprVisitor) VisitPrintStmt(_ *PrintStmt) error {
+	return errors.New("visit func for PrintStmt is not implemented")
+}
+
+type ExprStmt struct {
+	Expr Expression
+}
+
+var _ Statement = (*ExprStmt)(nil)
+
+func (b *ExprStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitExprStmt(b)
+}
+
+type PrintStmt struct {
+	Expr Expression
+}
+
+var _ Statement = (*PrintStmt)(nil)
+
+func (b *PrintStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitPrintStmt(b)
 }
