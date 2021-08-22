@@ -13,10 +13,14 @@ import (
 var _ ast.ExprVisitor = (*Interpreter)(nil)
 var _ ast.StmtVisitor = (*Interpreter)(nil)
 
-type Interpreter struct{}
+type Interpreter struct {
+	environment *Environment
+}
 
 func NewInterpreter() *Interpreter {
-	return &Interpreter{}
+	return &Interpreter{
+		environment: NewEnvironment(),
+	}
 }
 
 func (i *Interpreter) Interpret(stmts []ast.Statement) (err error) {
@@ -268,4 +272,27 @@ func (i *Interpreter) VisitPrintStmt(v *ast.PrintStmt) (err error) {
 
 func (i *Interpreter) execute(stmt ast.Statement) error {
 	return stmt.Accept(i)
+}
+
+func (i *Interpreter) VisitVarStmt(v *ast.VarStmt) (err error) {
+	var value interface{}
+
+	if v.Initializer != nil {
+		value, err = i.evaluate(v.Initializer)
+		if err != nil {
+			return
+		}
+	}
+
+	err = i.environment.Define(v.Name.Lexeme, value)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func (i *Interpreter) VisitVariableExpr(v *ast.VariableExpr) (result interface{}, err error) {
+	result, err = i.environment.Get(v.Name)
+	return
 }

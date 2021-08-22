@@ -39,6 +39,11 @@ var exprTypes = Types{
 		Fields:  `Operator *token.Token, Right Expression`,
 		Comment: "",
 	},
+	{
+		Name:    "VariableExpr",
+		Fields:  "Name *token.Token",
+		Comment: "",
+	},
 }
 
 var stmtTypes = Types{
@@ -50,6 +55,11 @@ var stmtTypes = Types{
 	{
 		Name:    "PrintStmt",
 		Fields:  "Expr Expression",
+		Comment: "",
+	},
+	{
+		Name:    "VarStmt",
+		Fields:  "Name *token.Token, Initializer Expression",
 		Comment: "",
 	},
 }

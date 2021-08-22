@@ -60,7 +60,7 @@ func (p *Parser) Parse() (stmts []ast.Statement, err error) {
 	var errs []error
 
 	for !p.isAtEnd() {
-		stmt, stmtErr := p.statement()
+		stmt, stmtErr := p.declaration()
 		if stmtErr != nil {
 			errs = append(errs, stmtErr)
 			p.synchronize()
@@ -257,7 +257,7 @@ func (p *Parser) unary() (expr ast.Expression, err error) {
 	return p.primary()
 }
 
-// primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+// primary → NUMBER | STRING | "true" | "false" | "nil" | IDENTIFIER | "(" expression ")" ;
 func (p *Parser) primary() (expr ast.Expression, err error) {
 	if p.match(token.Number, token.String) {
 		expr = &ast.LiteralExpr{Value: p.previous().Literal}
@@ -274,6 +274,10 @@ func (p *Parser) primary() (expr ast.Expression, err error) {
 	}
 	if p.match(token.Nil) {
 		expr = &ast.LiteralExpr{Value: nil}
+		return
+	}
+	if p.match(token.Identifier) {
+		expr = &ast.VariableExpr{Name: p.previous()}
 		return
 	}
 
@@ -357,5 +361,44 @@ func (p *Parser) exprStmt() (stmt ast.Statement, err error) {
 	}
 
 	stmt = &ast.ExprStmt{Expr: value}
+	return
+}
+
+// declaration → varDecl | statement ;
+func (p *Parser) declaration() (stmt ast.Statement, err error) {
+	if p.match(token.Var) {
+		return p.varDecl()
+	}
+
+	return p.statement()
+}
+
+// varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
+func (p *Parser) varDecl() (stmt ast.Statement, err error) {
+	name, err := p.consume(token.Identifier)
+	if err != nil {
+		err = fmt.Errorf("expected a variable name: %w", err)
+		return
+	}
+
+	var initializer ast.Expression
+	if p.match(token.Equal) {
+		initializer, err = p.expression()
+		if err != nil {
+			return
+		}
+	}
+
+	_, err = p.consume(token.Semicolon)
+	if err != nil {
+		err = fmt.Errorf("expected ';' after variable declaration: %w", err)
+		return
+	}
+
+	stmt = &ast.VarStmt{
+		Name:        name,
+		Initializer: initializer,
+	}
+
 	return
 }

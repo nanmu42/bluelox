@@ -14,8 +14,8 @@ func TestParser_Parse(t *testing.T) {
 	tests := []struct {
 		name     string
 		tokens   []*token.Token
-		wantExpr ast.Expression
-		wantErrs []error
+		wantExpr []ast.Statement
+		wantErr  error
 	}{
 		{
 			name: "empty",
@@ -28,7 +28,7 @@ func TestParser_Parse(t *testing.T) {
 				},
 			},
 			wantExpr: nil,
-			wantErrs: nil,
+			wantErr:  nil,
 		},
 		{
 			name: "easy",
@@ -46,22 +46,30 @@ func TestParser_Parse(t *testing.T) {
 					Line:    1,
 				},
 				{
+					Type:    token.Semicolon,
+					Lexeme:  ";",
+					Literal: nil,
+					Line:    1,
+				},
+				{
 					Type:    token.EOF,
 					Lexeme:  "",
 					Literal: nil,
 					Line:    1,
 				},
 			},
-			wantExpr: &ast.UnaryExpr{
-				Operator: &token.Token{
-					Type:    token.Bang,
-					Lexeme:  "!",
-					Literal: nil,
-					Line:    1,
-				},
-				Right: &ast.LiteralExpr{Value: 5},
+			wantExpr: []ast.Statement{
+				&ast.ExprStmt{Expr: &ast.UnaryExpr{
+					Operator: &token.Token{
+						Type:    token.Bang,
+						Lexeme:  "!",
+						Literal: nil,
+						Line:    1,
+					},
+					Right: &ast.LiteralExpr{Value: 5},
+				}},
 			},
-			wantErrs: nil,
+			wantErr: nil,
 		},
 		{
 			name: "literal nil",
@@ -79,22 +87,29 @@ func TestParser_Parse(t *testing.T) {
 					Line:    1,
 				},
 				{
+					Type:    token.Semicolon,
+					Lexeme:  ";",
+					Literal: nil,
+					Line:    1,
+				},
+				{
 					Type:    token.EOF,
 					Lexeme:  "",
 					Literal: nil,
 					Line:    1,
 				},
 			},
-			wantExpr: &ast.UnaryExpr{
-				Operator: &token.Token{
-					Type:    token.Bang,
-					Lexeme:  "!",
-					Literal: nil,
-					Line:    1,
-				},
-				Right: &ast.LiteralExpr{Value: nil},
-			},
-			wantErrs: nil,
+			wantExpr: []ast.Statement{
+				&ast.ExprStmt{Expr: &ast.UnaryExpr{
+					Operator: &token.Token{
+						Type:    token.Bang,
+						Lexeme:  "!",
+						Literal: nil,
+						Line:    1,
+					},
+					Right: &ast.LiteralExpr{Value: nil},
+				}}},
+			wantErr: nil,
 		},
 		{
 			name: "literal nil",
@@ -112,22 +127,29 @@ func TestParser_Parse(t *testing.T) {
 					Line:    1,
 				},
 				{
+					Type:    token.Semicolon,
+					Lexeme:  ";",
+					Literal: nil,
+					Line:    1,
+				},
+				{
 					Type:    token.EOF,
 					Lexeme:  "",
 					Literal: nil,
 					Line:    1,
 				},
 			},
-			wantExpr: &ast.UnaryExpr{
-				Operator: &token.Token{
-					Type:    token.Bang,
-					Lexeme:  "!",
-					Literal: nil,
-					Line:    1,
-				},
-				Right: &ast.LiteralExpr{Value: nil},
-			},
-			wantErrs: nil,
+			wantExpr: []ast.Statement{
+				&ast.ExprStmt{Expr: &ast.UnaryExpr{
+					Operator: &token.Token{
+						Type:    token.Bang,
+						Lexeme:  "!",
+						Literal: nil,
+						Line:    1,
+					},
+					Right: &ast.LiteralExpr{Value: nil},
+				}}},
+			wantErr: nil,
 		},
 		{
 			name: "textbook",
@@ -169,31 +191,38 @@ func TestParser_Parse(t *testing.T) {
 					Line:    1,
 				},
 				{
+					Type:    token.Semicolon,
+					Lexeme:  ";",
+					Literal: nil,
+					Line:    1,
+				},
+				{
 					Type:    token.EOF,
 					Lexeme:  "",
 					Literal: nil,
 					Line:    1,
 				},
 			},
-			wantExpr: &ast.BinaryExpr{
-				Left: &ast.UnaryExpr{
+			wantExpr: []ast.Statement{
+				&ast.ExprStmt{Expr: &ast.BinaryExpr{
+					Left: &ast.UnaryExpr{
+						Operator: &token.Token{
+							Type:    token.Minus,
+							Lexeme:  "-",
+							Literal: nil,
+							Line:    1,
+						},
+						Right: &ast.LiteralExpr{Value: 123},
+					},
 					Operator: &token.Token{
-						Type:    token.Minus,
-						Lexeme:  "-",
+						Type:    token.Star,
+						Lexeme:  "*",
 						Literal: nil,
 						Line:    1,
 					},
-					Right: &ast.LiteralExpr{Value: 123},
-				},
-				Operator: &token.Token{
-					Type:    token.Star,
-					Lexeme:  "*",
-					Literal: nil,
-					Line:    1,
-				},
-				Right: &ast.GroupingExpr{Expr: &ast.LiteralExpr{Value: 45.67}},
-			},
-			wantErrs: nil,
+					Right: &ast.GroupingExpr{Expr: &ast.LiteralExpr{Value: 45.67}},
+				}}},
+			wantErr: nil,
 		},
 	}
 	for _, tt := range tests {
@@ -203,8 +232,8 @@ func TestParser_Parse(t *testing.T) {
 			if !reflect.DeepEqual(gotExpr, tt.wantExpr) {
 				t.Errorf("Parse() gotExpr = \n%v\n, want \n%v\n", jsonify(gotExpr), jsonify(tt.wantExpr))
 			}
-			if !reflect.DeepEqual(gotErrs, tt.wantErrs) {
-				t.Errorf("Parse() gotErrs = %v, want %v", gotErrs, tt.wantErrs)
+			if !reflect.DeepEqual(gotErrs, tt.wantErr) {
+				t.Errorf("Parse() gotErrs = %v, want %v", gotErrs, tt.wantErr)
 			}
 		})
 	}

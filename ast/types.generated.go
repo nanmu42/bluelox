@@ -20,6 +20,7 @@ type ExprVisitor interface {
 	VisitGroupingExpr(v *GroupingExpr) (result interface{}, err error)
 	VisitLiteralExpr(v *LiteralExpr) (result interface{}, err error)
 	VisitUnaryExpr(v *UnaryExpr) (result interface{}, err error)
+	VisitVariableExpr(v *VariableExpr) (result interface{}, err error)
 }
 
 type StubExprVisitor struct{}
@@ -40,6 +41,10 @@ func (s StubExprVisitor) VisitLiteralExpr(_ *LiteralExpr) (interface{}, error) {
 
 func (s StubExprVisitor) VisitUnaryExpr(_ *UnaryExpr) (interface{}, error) {
 	return nil, errors.New("visit func for UnaryExpr is not implemented")
+}
+
+func (s StubExprVisitor) VisitVariableExpr(_ *VariableExpr) (interface{}, error) {
+	return nil, errors.New("visit func for VariableExpr is not implemented")
 }
 
 type BinaryExpr struct {
@@ -85,9 +90,20 @@ func (b *UnaryExpr) Accept(visitor ExprVisitor) (result interface{}, err error) 
 	return visitor.VisitUnaryExpr(b)
 }
 
+type VariableExpr struct {
+	Name *token.Token
+}
+
+var _ Expression = (*VariableExpr)(nil)
+
+func (b *VariableExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	return visitor.VisitVariableExpr(b)
+}
+
 type StmtVisitor interface {
 	VisitExprStmt(v *ExprStmt) (err error)
 	VisitPrintStmt(v *PrintStmt) (err error)
+	VisitVarStmt(v *VarStmt) (err error)
 }
 
 type StubStmtVisitor struct{}
@@ -100,6 +116,10 @@ func (s StubExprVisitor) VisitExprStmt(_ *ExprStmt) error {
 
 func (s StubExprVisitor) VisitPrintStmt(_ *PrintStmt) error {
 	return errors.New("visit func for PrintStmt is not implemented")
+}
+
+func (s StubExprVisitor) VisitVarStmt(_ *VarStmt) error {
+	return errors.New("visit func for VarStmt is not implemented")
 }
 
 type ExprStmt struct {
@@ -120,4 +140,15 @@ var _ Statement = (*PrintStmt)(nil)
 
 func (b *PrintStmt) Accept(visitor StmtVisitor) (err error) {
 	return visitor.VisitPrintStmt(b)
+}
+
+type VarStmt struct {
+	Name        *token.Token
+	Initializer Expression
+}
+
+var _ Statement = (*VarStmt)(nil)
+
+func (b *VarStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitVarStmt(b)
 }

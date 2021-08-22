@@ -13,10 +13,13 @@ import (
 )
 
 type Lox struct {
+	interpreter *interpreter.Interpreter
 }
 
 func NewLox() *Lox {
-	return &Lox{}
+	return &Lox{
+		interpreter: interpreter.NewInterpreter(),
+	}
 }
 
 func (l *Lox) RunFile(path string) (err error) {
@@ -79,8 +82,7 @@ func (l *Lox) run(script []byte) (err error) {
 		return
 	}
 
-	i := interpreter.NewInterpreter()
-	err = i.Interpret(stmts)
+	err = l.interpreter.Interpret(stmts)
 	if err != nil {
 		return
 	}
