@@ -20,6 +20,11 @@ const (
 
 var exprTypes = Types{
 	{
+		Name:    "AssignExpr",
+		Fields:  "Name *token.Token, Value Expression",
+		Comment: "",
+	},
+	{
 		Name:    `BinaryExpr`,
 		Fields:  `Left Expression, Operator *token.Token, Right Expression`,
 		Comment: "",

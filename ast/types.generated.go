@@ -16,6 +16,7 @@ type Statement interface {
 }
 
 type ExprVisitor interface {
+	VisitAssignExpr(v *AssignExpr) (result interface{}, err error)
 	VisitBinaryExpr(v *BinaryExpr) (result interface{}, err error)
 	VisitGroupingExpr(v *GroupingExpr) (result interface{}, err error)
 	VisitLiteralExpr(v *LiteralExpr) (result interface{}, err error)
@@ -26,6 +27,10 @@ type ExprVisitor interface {
 type StubExprVisitor struct{}
 
 var _ ExprVisitor = StubExprVisitor{}
+
+func (s StubExprVisitor) VisitAssignExpr(_ *AssignExpr) (interface{}, error) {
+	return nil, errors.New("visit func for AssignExpr is not implemented")
+}
 
 func (s StubExprVisitor) VisitBinaryExpr(_ *BinaryExpr) (interface{}, error) {
 	return nil, errors.New("visit func for BinaryExpr is not implemented")
@@ -45,6 +50,17 @@ func (s StubExprVisitor) VisitUnaryExpr(_ *UnaryExpr) (interface{}, error) {
 
 func (s StubExprVisitor) VisitVariableExpr(_ *VariableExpr) (interface{}, error) {
 	return nil, errors.New("visit func for VariableExpr is not implemented")
+}
+
+type AssignExpr struct {
+	Name  *token.Token
+	Value Expression
+}
+
+var _ Expression = (*AssignExpr)(nil)
+
+func (b *AssignExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	return visitor.VisitAssignExpr(b)
 }
 
 type BinaryExpr struct {

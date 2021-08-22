@@ -30,3 +30,14 @@ func (e *Environment) Get(name *token.Token) (value interface{}, err error) {
 
 	return
 }
+
+func (e *Environment) Assign(name *token.Token, value interface{}) (err error) {
+	_, ok := e.values[name.Lexeme]
+	if !ok {
+		err = fmt.Errorf("can not assign undecleared variable %q", name.Lexeme)
+		return
+	}
+
+	e.values[name.Lexeme] = value
+	return
+}

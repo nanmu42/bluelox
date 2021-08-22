@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -86,9 +87,9 @@ func (p *Parser) statement() (stmt ast.Statement, err error) {
 	return p.exprStmt()
 }
 
-// expression → equality
+// expression → assignment
 func (p *Parser) expression() (ast.Expression, error) {
-	return p.equality()
+	return p.assignment()
 }
 
 // equality → comparison ( ( "!=" | "==" ) comparison )* ;
@@ -398,6 +399,36 @@ func (p *Parser) varDecl() (stmt ast.Statement, err error) {
 	stmt = &ast.VarStmt{
 		Name:        name,
 		Initializer: initializer,
+	}
+
+	return
+}
+
+// assignment → IDENTIFIER "=" assignment | equality ;
+func (p *Parser) assignment() (expr ast.Expression, err error) {
+	expr, err = p.equality()
+	if err != nil {
+		return
+	}
+
+	if !p.match(token.Equal) {
+		return
+	}
+
+	value, err := p.assignment()
+	if err != nil {
+		err = fmt.Errorf("parsing r-value: %w", err)
+		return
+	}
+	name, ok := expr.(*ast.VariableExpr)
+	if !ok {
+		err = errors.New("invalid assignment target")
+		return
+	}
+
+	expr = &ast.AssignExpr{
+		Name:  name.Name,
+		Value: value,
 	}
 
 	return

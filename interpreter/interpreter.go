@@ -296,3 +296,14 @@ func (i *Interpreter) VisitVariableExpr(v *ast.VariableExpr) (result interface{}
 	result, err = i.environment.Get(v.Name)
 	return
 }
+
+func (i *Interpreter) VisitAssignExpr(v *ast.AssignExpr) (result interface{}, err error) {
+	result, err = i.evaluate(v.Value)
+	if err != nil {
+		return
+	}
+
+	err = i.environment.Assign(v.Name, result)
+
+	return
+}
