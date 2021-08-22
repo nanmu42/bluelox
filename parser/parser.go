@@ -24,7 +24,7 @@ func (p *ParsingErr) Error() string {
 	length := len(p.errs)
 
 	if length == 0 {
-		return "parsing error with 0 detail, maybe there is a problem in implementation"
+		return "parsing error with 0 detail, it's likely that there is a problem in implementation"
 	}
 
 	if length == 1 {
