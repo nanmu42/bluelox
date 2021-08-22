@@ -116,7 +116,7 @@ func (i *Interpreter) VisitBinaryExpr(v *ast.BinaryExpr) (result interface{}, er
 		}
 
 		err = &RuntimeError{
-			Reason: fmt.Sprintf("operands must be both numbers or strings, got %v and %v", left, right),
+			Reason: fmt.Sprintf("operands must be both numbers or strings, got %q(%T) and %q(%T)", left, left, right, right),
 			Token:  v.Operator,
 		}
 		return
