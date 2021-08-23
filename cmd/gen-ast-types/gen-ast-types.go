@@ -53,6 +53,11 @@ var exprTypes = Types{
 
 var stmtTypes = Types{
 	{
+		Name:    "BlockStmt",
+		Fields:  "Stmts []Statement",
+		Comment: "",
+	},
+	{
 		Name:    "ExprStmt",
 		Fields:  "Expr Expression",
 		Comment: "",

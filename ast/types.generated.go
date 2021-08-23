@@ -117,6 +117,7 @@ func (b *VariableExpr) Accept(visitor ExprVisitor) (result interface{}, err erro
 }
 
 type StmtVisitor interface {
+	VisitBlockStmt(v *BlockStmt) (err error)
 	VisitExprStmt(v *ExprStmt) (err error)
 	VisitPrintStmt(v *PrintStmt) (err error)
 	VisitVarStmt(v *VarStmt) (err error)
@@ -125,6 +126,10 @@ type StmtVisitor interface {
 type StubStmtVisitor struct{}
 
 var _ ExprVisitor = StubExprVisitor{}
+
+func (s StubExprVisitor) VisitBlockStmt(_ *BlockStmt) error {
+	return errors.New("visit func for BlockStmt is not implemented")
+}
 
 func (s StubExprVisitor) VisitExprStmt(_ *ExprStmt) error {
 	return errors.New("visit func for ExprStmt is not implemented")
@@ -136,6 +141,16 @@ func (s StubExprVisitor) VisitPrintStmt(_ *PrintStmt) error {
 
 func (s StubExprVisitor) VisitVarStmt(_ *VarStmt) error {
 	return errors.New("visit func for VarStmt is not implemented")
+}
+
+type BlockStmt struct {
+	Stmts []Statement
+}
+
+var _ Statement = (*BlockStmt)(nil)
+
+func (b *BlockStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitBlockStmt(b)
 }
 
 type ExprStmt struct {

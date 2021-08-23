@@ -307,3 +307,25 @@ func (i *Interpreter) VisitAssignExpr(v *ast.AssignExpr) (result interface{}, er
 
 	return
 }
+
+func (i *Interpreter) VisitBlockStmt(v *ast.BlockStmt) (err error) {
+	err = i.executeBlock(v.Stmts, NewEnvironmentChild(i.environment))
+	return
+}
+
+func (i *Interpreter) executeBlock(stmts []ast.Statement, blockEnv *Environment) (err error) {
+	var previousEnv = i.environment
+	i.environment = blockEnv
+	defer func() {
+		i.environment = previousEnv
+	}()
+
+	for _, stmt := range stmts {
+		err = i.execute(stmt)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}

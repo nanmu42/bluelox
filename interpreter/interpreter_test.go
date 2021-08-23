@@ -10,7 +10,6 @@ import (
 	"github.com/nanmu42/bluelox/ast"
 )
 
-// TODO: 6(3) now outputs 3, which is odd
 func TestInterpreter_evaluate(t *testing.T) {
 	tests := []struct {
 		name       string

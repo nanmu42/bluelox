@@ -78,10 +78,21 @@ func (p *Parser) Parse() (stmts []ast.Statement, err error) {
 	return
 }
 
-// statement → exprStmt | printStmt ;
+// statement → exprStmt | printStmt | block ;
 func (p *Parser) statement() (stmt ast.Statement, err error) {
 	if p.match(token.Print) {
 		return p.printStmt()
+	}
+	if p.match(token.LeftBrace) {
+		var innerStmts []ast.Statement
+
+		innerStmts, err = p.block()
+		if err != nil {
+			return
+		}
+
+		stmt = &ast.BlockStmt{Stmts: innerStmts}
+		return
 	}
 
 	return p.exprStmt()
@@ -429,6 +440,26 @@ func (p *Parser) assignment() (expr ast.Expression, err error) {
 	expr = &ast.AssignExpr{
 		Name:  name.Name,
 		Value: value,
+	}
+
+	return
+}
+
+func (p *Parser) block() (stmts []ast.Statement, err error) {
+	for !p.check(token.RightBrace) {
+		var innerStmt ast.Statement
+		innerStmt, err = p.declaration()
+		if err != nil {
+			return
+		}
+
+		stmts = append(stmts, innerStmt)
+	}
+
+	_, err = p.consume(token.RightBrace)
+	if err != nil {
+		err = fmt.Errorf("expected '}' after block: %w", err)
+		return
 	}
 
 	return
