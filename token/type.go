@@ -75,7 +75,7 @@ var KeywordMapping = map[string]Type{
 	"fun":    Fun,
 	"if":     If,
 	"nil":    Nil,
-	"or":     Nil,
+	"or":     Or,
 	"print":  Print,
 	"return": Return,
 	"super":  Super,

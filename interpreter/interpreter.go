@@ -329,3 +329,59 @@ func (i *Interpreter) executeBlock(stmts []ast.Statement, blockEnv *Environment)
 
 	return
 }
+
+func (i *Interpreter) VisitIfStmt(v *ast.IfStmt) (err error) {
+	evalCondition, err := i.evaluate(v.Condition)
+	if err != nil {
+		return
+	}
+
+	if i.isTruthy(evalCondition) {
+		err = i.execute(v.ThenBranch)
+		return
+	}
+
+	if v.ElseBranch == nil {
+		return
+	}
+
+	err = i.execute(v.ElseBranch)
+	return
+}
+
+func (i *Interpreter) VisitWhileStmt(v *ast.WhileStmt) (err error) {
+	evalCondition, err := i.evaluate(v.Condition)
+	if err != nil {
+		return
+	}
+
+	for i.isTruthy(evalCondition) {
+		err = i.execute(v.Body)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (i *Interpreter) VisitLogicalExpr(v *ast.LogicalExpr) (result interface{}, err error) {
+	result, err = i.evaluate(v.Left)
+	if err != nil {
+		return
+	}
+
+	// short circuit
+	if i.isTruthy(result) {
+		if v.Operator.Type == token.Or {
+			return
+		}
+	} else {
+		if v.Operator.Type == token.And {
+			return
+		}
+	}
+
+	result, err = i.evaluate(v.Right)
+	return
+}

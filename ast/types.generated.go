@@ -20,6 +20,7 @@ type ExprVisitor interface {
 	VisitBinaryExpr(v *BinaryExpr) (result interface{}, err error)
 	VisitGroupingExpr(v *GroupingExpr) (result interface{}, err error)
 	VisitLiteralExpr(v *LiteralExpr) (result interface{}, err error)
+	VisitLogicalExpr(v *LogicalExpr) (result interface{}, err error)
 	VisitUnaryExpr(v *UnaryExpr) (result interface{}, err error)
 	VisitVariableExpr(v *VariableExpr) (result interface{}, err error)
 }
@@ -42,6 +43,10 @@ func (s StubExprVisitor) VisitGroupingExpr(_ *GroupingExpr) (interface{}, error)
 
 func (s StubExprVisitor) VisitLiteralExpr(_ *LiteralExpr) (interface{}, error) {
 	return nil, errors.New("visit func for LiteralExpr is not implemented")
+}
+
+func (s StubExprVisitor) VisitLogicalExpr(_ *LogicalExpr) (interface{}, error) {
+	return nil, errors.New("visit func for LogicalExpr is not implemented")
 }
 
 func (s StubExprVisitor) VisitUnaryExpr(_ *UnaryExpr) (interface{}, error) {
@@ -95,6 +100,18 @@ func (b *LiteralExpr) Accept(visitor ExprVisitor) (result interface{}, err error
 	return visitor.VisitLiteralExpr(b)
 }
 
+type LogicalExpr struct {
+	Left     Expression
+	Operator *token.Token
+	Right    Expression
+}
+
+var _ Expression = (*LogicalExpr)(nil)
+
+func (b *LogicalExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	return visitor.VisitLogicalExpr(b)
+}
+
 type UnaryExpr struct {
 	Operator *token.Token
 	Right    Expression
@@ -119,8 +136,10 @@ func (b *VariableExpr) Accept(visitor ExprVisitor) (result interface{}, err erro
 type StmtVisitor interface {
 	VisitBlockStmt(v *BlockStmt) (err error)
 	VisitExprStmt(v *ExprStmt) (err error)
+	VisitIfStmt(v *IfStmt) (err error)
 	VisitPrintStmt(v *PrintStmt) (err error)
 	VisitVarStmt(v *VarStmt) (err error)
+	VisitWhileStmt(v *WhileStmt) (err error)
 }
 
 type StubStmtVisitor struct{}
@@ -135,12 +154,20 @@ func (s StubExprVisitor) VisitExprStmt(_ *ExprStmt) error {
 	return errors.New("visit func for ExprStmt is not implemented")
 }
 
+func (s StubExprVisitor) VisitIfStmt(_ *IfStmt) error {
+	return errors.New("visit func for IfStmt is not implemented")
+}
+
 func (s StubExprVisitor) VisitPrintStmt(_ *PrintStmt) error {
 	return errors.New("visit func for PrintStmt is not implemented")
 }
 
 func (s StubExprVisitor) VisitVarStmt(_ *VarStmt) error {
 	return errors.New("visit func for VarStmt is not implemented")
+}
+
+func (s StubExprVisitor) VisitWhileStmt(_ *WhileStmt) error {
+	return errors.New("visit func for WhileStmt is not implemented")
 }
 
 type BlockStmt struct {
@@ -163,6 +190,18 @@ func (b *ExprStmt) Accept(visitor StmtVisitor) (err error) {
 	return visitor.VisitExprStmt(b)
 }
 
+type IfStmt struct {
+	Condition  Expression
+	ThenBranch Statement
+	ElseBranch Statement
+}
+
+var _ Statement = (*IfStmt)(nil)
+
+func (b *IfStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitIfStmt(b)
+}
+
 type PrintStmt struct {
 	Expr Expression
 }
@@ -182,4 +221,15 @@ var _ Statement = (*VarStmt)(nil)
 
 func (b *VarStmt) Accept(visitor StmtVisitor) (err error) {
 	return visitor.VisitVarStmt(b)
+}
+
+type WhileStmt struct {
+	Condition Expression
+	Body      Statement
+}
+
+var _ Statement = (*WhileStmt)(nil)
+
+func (b *WhileStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitWhileStmt(b)
 }

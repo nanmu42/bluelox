@@ -40,6 +40,11 @@ var exprTypes = Types{
 		Comment: "",
 	},
 	{
+		Name:    "LogicalExpr",
+		Fields:  "Left Expression, Operator *token.Token, Right Expression",
+		Comment: "",
+	},
+	{
 		Name:    `UnaryExpr`,
 		Fields:  `Operator *token.Token, Right Expression`,
 		Comment: "",
@@ -63,6 +68,11 @@ var stmtTypes = Types{
 		Comment: "",
 	},
 	{
+		Name:    "IfStmt",
+		Fields:  "Condition Expression, ThenBranch Statement, ElseBranch Statement",
+		Comment: "",
+	},
+	{
 		Name:    "PrintStmt",
 		Fields:  "Expr Expression",
 		Comment: "",
@@ -70,6 +80,11 @@ var stmtTypes = Types{
 	{
 		Name:    "VarStmt",
 		Fields:  "Name *token.Token, Initializer Expression",
+		Comment: "",
+	},
+	{
+		Name:    "WhileStmt",
+		Fields:  "Condition Expression, Body Statement",
 		Comment: "",
 	},
 }

@@ -78,10 +78,24 @@ func (p *Parser) Parse() (stmts []ast.Statement, err error) {
 	return
 }
 
-// statement → exprStmt | printStmt | block ;
+// statement → exprStmt
+// | forStmt
+// | ifStmt
+// | printStmt
+// | whileStmt
+// | block ;
 func (p *Parser) statement() (stmt ast.Statement, err error) {
+	if p.match(token.For) {
+		return p.forStmt()
+	}
+	if p.match(token.If) {
+		return p.ifStmt()
+	}
 	if p.match(token.Print) {
 		return p.printStmt()
+	}
+	if p.match(token.While) {
+		return p.whileStmt()
 	}
 	if p.match(token.LeftBrace) {
 		var innerStmts []ast.Statement
@@ -415,9 +429,9 @@ func (p *Parser) varDecl() (stmt ast.Statement, err error) {
 	return
 }
 
-// assignment → IDENTIFIER "=" assignment | equality ;
+// assignment → IDENTIFIER "=" assignment | or ;
 func (p *Parser) assignment() (expr ast.Expression, err error) {
-	expr, err = p.equality()
+	expr, err = p.or()
 	if err != nil {
 		return
 	}
@@ -460,6 +474,210 @@ func (p *Parser) block() (stmts []ast.Statement, err error) {
 	if err != nil {
 		err = fmt.Errorf("expected '}' after block: %w", err)
 		return
+	}
+
+	return
+}
+
+func (p *Parser) ifStmt() (stmt ast.Statement, err error) {
+	_, err = p.consume(token.LeftParen)
+	if err != nil {
+		err = fmt.Errorf("expected '(' after 'if': %w", err)
+		return
+	}
+	condition, err := p.expression()
+	if err != nil {
+		return
+	}
+	_, err = p.consume(token.RightParen)
+	if err != nil {
+		err = fmt.Errorf("expected ')' after 'if' condition: %w", err)
+		return
+	}
+
+	thenBranch, err := p.statement()
+	if err != nil {
+		return
+	}
+	var elseBranch ast.Statement
+	if p.match(token.Else) {
+		elseBranch, err = p.statement()
+		if err != nil {
+			return
+		}
+	}
+
+	stmt = &ast.IfStmt{
+		Condition:  condition,
+		ThenBranch: thenBranch,
+		ElseBranch: elseBranch,
+	}
+
+	return
+}
+
+// or → and ( "or" and )* ;
+func (p *Parser) or() (expr ast.Expression, err error) {
+	expr, err = p.and()
+	if err != nil {
+		return
+	}
+
+	for p.match(token.Or) {
+		operator := p.previous()
+
+		var right ast.Expression
+		right, err = p.and()
+		if err != nil {
+			return
+		}
+
+		expr = &ast.LogicalExpr{
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+
+	return
+}
+
+// and → equality ( "and" equality )* ;
+func (p *Parser) and() (expr ast.Expression, err error) {
+	expr, err = p.equality()
+	if err != nil {
+		return
+	}
+
+	for p.match(token.And) {
+		operator := p.previous()
+
+		var right ast.Expression
+		right, err = p.equality()
+		if err != nil {
+			return
+		}
+
+		expr = &ast.LogicalExpr{
+			Left:     expr,
+			Operator: operator,
+			Right:    right,
+		}
+	}
+
+	return
+}
+
+// whileStmt      → "while" "(" expression ")" statement ;
+func (p *Parser) whileStmt() (stmt ast.Statement, err error) {
+	_, err = p.consume(token.LeftParen)
+	if err != nil {
+		err = fmt.Errorf("expected '(' after 'while': %w", err)
+		return
+	}
+
+	condition, err := p.expression()
+	if err != nil {
+		return
+	}
+
+	_, err = p.consume(token.RightParen)
+	if err != nil {
+		err = fmt.Errorf("expected ')' after 'while': %w", err)
+		return
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return
+	}
+
+	stmt = &ast.WhileStmt{
+		Condition: condition,
+		Body:      body,
+	}
+	return
+}
+
+// forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
+//                 expression? ";"
+//                 expression? ")" statement ;
+func (p *Parser) forStmt() (stmt ast.Statement, err error) {
+	_, err = p.consume(token.LeftParen)
+	if err != nil {
+		err = fmt.Errorf("expected '(' after 'for': %w", err)
+		return
+	}
+
+	var initializer ast.Statement
+	if p.match(token.Semicolon) {
+		initializer = nil
+	} else if p.match(token.Var) {
+		initializer, err = p.varDecl()
+		if err != nil {
+			return
+		}
+	} else {
+		initializer, err = p.exprStmt()
+		if err != nil {
+			return
+		}
+	}
+
+	var condition ast.Expression
+	if !p.check(token.Semicolon) {
+		condition, err = p.expression()
+		if err != nil {
+			return
+		}
+	} else {
+		condition = &ast.LiteralExpr{Value: true}
+	}
+	_, err = p.consume(token.Semicolon)
+	if err != nil {
+		err = fmt.Errorf("expected ';' after loop condition: %w", err)
+		return
+	}
+
+	var increment ast.Expression
+	if !p.check(token.RightParen) {
+		increment, err = p.expression()
+		if err != nil {
+			return
+		}
+	}
+
+	_, err = p.consume(token.RightParen)
+	if err != nil {
+		err = fmt.Errorf("expected ')' after 'for' clause: %w", err)
+		return
+	}
+
+	body, err := p.statement()
+	if err != nil {
+		return
+	}
+	if increment != nil {
+		body = &ast.BlockStmt{
+			Stmts: []ast.Statement{
+				body,
+				&ast.ExprStmt{Expr: increment},
+			},
+		}
+	}
+
+	stmt = &ast.WhileStmt{
+		Condition: condition,
+		Body:      body,
+	}
+
+	if initializer != nil {
+		stmt = &ast.BlockStmt{
+			Stmts: []ast.Statement{
+				initializer,
+				stmt,
+			},
+		}
 	}
 
 	return
