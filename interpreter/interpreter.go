@@ -350,12 +350,16 @@ func (i *Interpreter) VisitIfStmt(v *ast.IfStmt) (err error) {
 }
 
 func (i *Interpreter) VisitWhileStmt(v *ast.WhileStmt) (err error) {
-	evalCondition, err := i.evaluate(v.Condition)
-	if err != nil {
-		return
-	}
+	var evalCondition interface{}
+	for {
+		evalCondition, err = i.evaluate(v.Condition)
+		if err != nil {
+			return
+		}
+		if !i.isTruthy(evalCondition) {
+			break
+		}
 
-	for i.isTruthy(evalCondition) {
 		err = i.execute(v.Body)
 		if err != nil {
 			return
