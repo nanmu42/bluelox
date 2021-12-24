@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"unicode/utf8"
 
 	"github.com/nanmu42/bluelox/token"
 )
@@ -157,17 +158,18 @@ func (s *Scanner) scanToken() (err error) {
 	return
 }
 
-func (s *Scanner) peek() byte {
+func (s *Scanner) peek() rune {
 	if s.isAtEnd() {
 		return 0
 	}
 
-	return s.source[s.current]
+	next, _ := utf8.DecodeRune(s.source[s.current:])
+	return next
 }
 
-func (s *Scanner) advance() (c byte) {
-	c = s.source[s.current]
-	s.current++
+func (s *Scanner) advance() (c rune) {
+	c, size := utf8.DecodeRune(s.source[s.current:])
+	s.current += size
 	return
 }
 
@@ -260,24 +262,32 @@ func (s *Scanner) identifier() {
 	s.addSimpleToken(tokenType)
 }
 
-func (s *Scanner) peekNext() byte {
-	if s.current+1 >= len(s.source) {
+func (s *Scanner) peekNext() rune {
+	current, size := utf8.DecodeRune(s.source[s.current:])
+	if current == utf8.RuneError {
 		return 0
 	}
 
-	return s.source[s.current+1]
+	offset := s.current + size
+	if offset >= len(s.source) {
+		return 0
+	}
+
+	next, _ := utf8.DecodeRune(s.source[offset:])
+
+	return next
 }
 
-func isDigit(c byte) bool {
+func isDigit(c rune) bool {
 	return c >= '0' && c <= '9'
 }
 
-func isAlpha(c byte) bool {
+func isAlpha(c rune) bool {
 	return (c >= 'a' && c <= 'z') ||
 		(c >= 'A' && c <= 'Z') ||
 		c == '_'
 }
 
-func isAlphaNumeric(c byte) bool {
+func isAlphaNumeric(c rune) bool {
 	return isAlpha(c) || isDigit(c)
 }

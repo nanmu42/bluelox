@@ -62,6 +62,34 @@ func TestScanner_ScanTokens(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "UTF8",
+			source: `// 这是一段注释
+(( )){} // 滚滚长江东逝水
+!*+-/=<> <= == // 我能吞下剥离而不伤及身体`,
+			wantTokens: []*token.Token{
+				st(token.LeftParen, "(", 2),
+				st(token.LeftParen, "(", 2),
+				st(token.RightParen, ")", 2),
+				st(token.RightParen, ")", 2),
+				st(token.LeftBrace, "{", 2),
+				st(token.RightBrace, "}", 2),
+
+				st(token.Bang, "!", 3),
+				st(token.Star, "*", 3),
+				st(token.Plus, "+", 3),
+				st(token.Minus, "-", 3),
+				st(token.Slash, "/", 3),
+				st(token.Equal, "=", 3),
+				st(token.Less, "<", 3),
+				st(token.Greater, ">", 3),
+				st(token.LessEqual, "<=", 3),
+				st(token.EqualEqual, "==", 3),
+
+				st(token.EOF, "", 3),
+			},
+			wantErr: false,
+		},
+		{
 			name: "some code",
 			source: `var alibaba = blaster175 + 3.14
 if 6 >= k { // hey!
@@ -97,6 +125,51 @@ print "hello world"
 					Type:    token.String,
 					Lexeme:  `"hello world"`,
 					Literal: "hello world",
+					Line:    3,
+				},
+
+				st(token.RightBrace, "}", 4),
+
+				st(token.EOF, "", 5),
+			},
+			wantErr: false,
+		},
+		{
+			name: "some code with UTF8",
+			source: `var alibaba = blaster175 + 3.14
+if 6 >= k { // hey!
+print "你好，世界！"
+}
+`,
+			wantTokens: []*token.Token{
+				st(token.Var, "var", 1),
+				st(token.Identifier, "alibaba", 1),
+				st(token.Equal, "=", 1),
+				st(token.Identifier, "blaster175", 1),
+				st(token.Plus, "+", 1),
+				{
+					Type:    token.Number,
+					Lexeme:  "3.14",
+					Literal: 3.14,
+					Line:    1,
+				},
+
+				st(token.If, "if", 2),
+				{
+					Type:    token.Number,
+					Lexeme:  "6",
+					Literal: float64(6),
+					Line:    2,
+				},
+				st(token.GreaterEqual, ">=", 2),
+				st(token.Identifier, "k", 2),
+				st(token.LeftBrace, "{", 2),
+
+				st(token.Print, "print", 3),
+				{
+					Type:    token.String,
+					Lexeme:  `"你好，世界！"`,
+					Literal: "你好，世界！",
 					Line:    3,
 				},
 
