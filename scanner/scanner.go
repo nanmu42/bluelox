@@ -187,15 +187,17 @@ func (s *Scanner) addSimpleToken(tokenType token.Type) {
 	s.addToken(tokenType, nil)
 }
 
-func (s *Scanner) match(expected byte) bool {
+func (s *Scanner) match(expected rune) bool {
 	if s.isAtEnd() {
 		return false
 	}
-	if s.source[s.current] != expected {
+
+	current, size := utf8.DecodeRune(s.source[s.current:])
+	if current != expected {
 		return false
 	}
 
-	s.current++
+	s.current += size
 	return true
 }
 
