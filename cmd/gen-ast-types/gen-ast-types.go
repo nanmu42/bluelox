@@ -30,6 +30,11 @@ var exprTypes = Types{
 		Comment: "",
 	},
 	{
+		Name:    `CallExpr`,
+		Fields:  `Callee Expression, Paren *token.Token, Arguments []Expression`,
+		Comment: "",
+	},
+	{
 		Name:    `GroupingExpr`,
 		Fields:  `Expr Expression`,
 		Comment: "",
@@ -68,6 +73,11 @@ var stmtTypes = Types{
 		Comment: "",
 	},
 	{
+		Name:    "FunctionStmt",
+		Fields:  "Name *token.Token, Params []*token.Token, Body []Statement",
+		Comment: "",
+	},
+	{
 		Name:    "IfStmt",
 		Fields:  "Condition Expression, ThenBranch Statement, ElseBranch Statement",
 		Comment: "",
@@ -75,6 +85,11 @@ var stmtTypes = Types{
 	{
 		Name:    "PrintStmt",
 		Fields:  "Expr Expression",
+		Comment: "",
+	},
+	{
+		Name:    "ReturnStmt",
+		Fields:  "Keyword *token.Token, Value Expression",
 		Comment: "",
 	},
 	{

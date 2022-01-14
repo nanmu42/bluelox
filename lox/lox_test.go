@@ -16,6 +16,74 @@ print nil or "yes"; // "yes".
 	// yes
 }
 
+func ExampleLox_closure() {
+	const code = `fun makeCounter() {
+  var i = 0;
+  fun count() {
+    i = i + 1;
+    print i;
+  }
+
+  return count;
+}
+
+var counter = makeCounter();
+counter(); // "1".
+counter(); // "2".
+counter(); // "3".
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	if err != nil {
+		panic(err)
+	}
+	// Output:
+	// 1
+	// 2
+	// 3
+}
+
+func ExampleLox_fib() {
+	const code = `
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
+}
+
+for (var i = 0; i < 20; i = i + 1) {
+  print fib(i);
+}
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	if err != nil {
+		panic(err)
+	}
+	// Output:
+	// 0
+	// 1
+	// 1
+	// 2
+	// 3
+	// 5
+	// 8
+	// 13
+	// 21
+	// 34
+	// 55
+	// 89
+	// 144
+	// 233
+	// 377
+	// 610
+	// 987
+	// 1597
+	// 2584
+	// 4181
+}
+
 func ExampleLox_if() {
 	const code = `
 if (true) {

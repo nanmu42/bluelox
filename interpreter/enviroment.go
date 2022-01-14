@@ -11,22 +11,26 @@ type Environment struct {
 	parent *Environment
 }
 
-func NewEnvironment() *Environment {
-	return &Environment{
+func NewGlobalEnvironment() (env *Environment) {
+	env = &Environment{
 		values: make(map[string]interface{}),
 	}
+
+	// native functions
+	env.Define("clock", nativeFuncClock{})
+
+	return
 }
 
-func NewEnvironmentChild(parent *Environment) *Environment {
+func NewChildEnvironment(parent *Environment) *Environment {
 	return &Environment{
 		values: make(map[string]interface{}),
 		parent: parent,
 	}
 }
 
-func (e *Environment) Define(name string, value interface{}) (err error) {
+func (e *Environment) Define(name string, value interface{}) {
 	e.values[name] = value
-	return
 }
 
 func (e *Environment) Get(name *token.Token) (value interface{}, err error) {

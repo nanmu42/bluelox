@@ -9,12 +9,11 @@ import (
 
 func TestEnvironment_Define_Get(t *testing.T) {
 	var (
-		env = NewEnvironment()
+		env = NewGlobalEnvironment()
 		err error
 	)
 
-	err = env.Define("key1", "value1")
-	require.NoError(t, err)
+	env.Define("key1", "value1")
 
 	result, err := env.Get(&token.Token{
 		Type:    token.Identifier,
@@ -26,8 +25,7 @@ func TestEnvironment_Define_Get(t *testing.T) {
 
 	require.Equal(t, "value1", result)
 
-	err = env.Define("key2", "value2")
-	require.NoError(t, err)
+	env.Define("key2", "value2")
 
 	result, err = env.Get(&token.Token{
 		Type:    token.Identifier,

@@ -10,6 +10,8 @@ import (
 	"github.com/nanmu42/bluelox/token"
 )
 
+const maxFuncArgCounts = 255
+
 type Parser struct {
 	tokens []*token.Token
 
@@ -82,6 +84,7 @@ func (p *Parser) Parse() (stmts []ast.Statement, err error) {
 // | forStmt
 // | ifStmt
 // | printStmt
+// | returnStmt
 // | whileStmt
 // | block ;
 func (p *Parser) statement() (stmt ast.Statement, err error) {
@@ -93,6 +96,9 @@ func (p *Parser) statement() (stmt ast.Statement, err error) {
 	}
 	if p.match(token.Print) {
 		return p.printStmt()
+	}
+	if p.match(token.Return) {
+		return p.returnStmt()
 	}
 	if p.match(token.While) {
 		return p.whileStmt()
@@ -262,7 +268,7 @@ func (p *Parser) factor() (expr ast.Expression, err error) {
 	return
 }
 
-// unary → ( "!" | "-" ) unary | primary ;
+// unary → ( "!" | "-" ) unary | call ;
 func (p *Parser) unary() (expr ast.Expression, err error) {
 	if p.match(token.Bang, token.Minus) {
 		var (
@@ -280,7 +286,7 @@ func (p *Parser) unary() (expr ast.Expression, err error) {
 		return
 	}
 
-	return p.primary()
+	return p.call()
 }
 
 // primary → NUMBER | STRING | "true" | "false" | "nil" | IDENTIFIER | "(" expression ")" ;
@@ -390,13 +396,82 @@ func (p *Parser) exprStmt() (stmt ast.Statement, err error) {
 	return
 }
 
-// declaration → varDecl | statement ;
+// declaration → funDecl | varDecl | statement ;
 func (p *Parser) declaration() (stmt ast.Statement, err error) {
+	if p.match(token.Fun) {
+		return p.function("function")
+	}
+
 	if p.match(token.Var) {
 		return p.varDecl()
 	}
 
 	return p.statement()
+}
+
+// function → IDENTIFIER "(" parameters? ")" block ;
+func (p *Parser) function(kind string) (stmt ast.Statement, err error) {
+	name, err := p.consume(token.Identifier)
+	if err != nil {
+		err = fmt.Errorf("expected %s name: %w", kind, err)
+		return
+	}
+
+	_, err = p.consume(token.LeftParen)
+	if err != nil {
+		err = fmt.Errorf("expected '(' after %s name: %w", kind, err)
+		return
+	}
+
+	var parameters []*token.Token
+	if !p.check(token.RightParen) {
+		var firstParam *token.Token
+		firstParam, err = p.consume(token.Identifier)
+		if err != nil {
+			err = fmt.Errorf("expected parameter name: %w", err)
+			return
+		}
+		parameters = append(parameters, firstParam)
+
+		for p.match(token.Comma) {
+			if len(parameters) >= maxFuncArgCounts {
+				err = fmt.Errorf("can't have more than %d parameters", maxFuncArgCounts)
+				return
+			}
+
+			var param *token.Token
+			param, err = p.consume(token.Identifier)
+			if err != nil {
+				err = fmt.Errorf("expected parameter name: %w", err)
+				return
+			}
+			parameters = append(parameters, param)
+		}
+	}
+
+	_, err = p.consume(token.RightParen)
+	if err != nil {
+		err = fmt.Errorf("expected ')' after parameters: %w", err)
+		return
+	}
+
+	_, err = p.consume(token.LeftBrace)
+	if err != nil {
+		err = fmt.Errorf("expected '{' before %s body: %w", kind, err)
+		return
+	}
+
+	body, err := p.block()
+	if err != nil {
+		return
+	}
+
+	stmt = &ast.FunctionStmt{
+		Name:   name,
+		Params: parameters,
+		Body:   body,
+	}
+	return
 }
 
 // varDecl → "var" IDENTIFIER ( "=" expression )? ";" ;
@@ -678,6 +753,94 @@ func (p *Parser) forStmt() (stmt ast.Statement, err error) {
 				stmt,
 			},
 		}
+	}
+
+	return
+}
+
+// call  → ( "!" | "-" ) unary | call ;
+func (p *Parser) call() (expr ast.Expression, err error) {
+	expr, err = p.primary()
+	if err != nil {
+		return
+	}
+
+	for {
+		if p.match(token.LeftParen) {
+			expr, err = p.finishCall(expr)
+			if err != nil {
+				return
+			}
+		} else {
+			break
+		}
+	}
+
+	return
+}
+
+func (p *Parser) finishCall(callee ast.Expression) (expr ast.Expression, err error) {
+	var arguments []ast.Expression
+	if !p.check(token.RightParen) {
+		var firstArg ast.Expression
+		firstArg, err = p.expression()
+		if err != nil {
+			err = fmt.Errorf("parsing first arg: %w", err)
+			return
+		}
+		arguments = append(arguments, firstArg)
+
+		argSeq := 1
+		for p.match(token.Comma) {
+			argSeq++
+
+			var arg ast.Expression
+			arg, err = p.expression()
+			if err != nil {
+				err = fmt.Errorf("parsing arg #%d: %w", argSeq, err)
+				return
+			}
+			if argSeq >= maxFuncArgCounts {
+				err = fmt.Errorf("can't have more than %d arguments", maxFuncArgCounts)
+				return
+			}
+
+			arguments = append(arguments, arg)
+		}
+	}
+
+	paren, err := p.consume(token.RightParen)
+	if err != nil {
+		err = fmt.Errorf("expect ')' after arguments: %w", err)
+		return
+	}
+
+	expr = &ast.CallExpr{
+		Callee:    callee,
+		Paren:     paren,
+		Arguments: arguments,
+	}
+	return
+}
+
+func (p *Parser) returnStmt() (stmt ast.Statement, err error) {
+	keyword := p.previous()
+	var value ast.Expression
+	if !p.check(token.Semicolon) {
+		value, err = p.expression()
+		if err != nil {
+			return
+		}
+	}
+
+	_, err = p.consume(token.Semicolon)
+	if err != nil {
+		err = fmt.Errorf("expected ';' after return value: %w", err)
+		return
+	}
+	stmt = &ast.ReturnStmt{
+		Keyword: keyword,
+		Value:   value,
 	}
 
 	return

@@ -18,6 +18,7 @@ type Statement interface {
 type ExprVisitor interface {
 	VisitAssignExpr(v *AssignExpr) (result interface{}, err error)
 	VisitBinaryExpr(v *BinaryExpr) (result interface{}, err error)
+	VisitCallExpr(v *CallExpr) (result interface{}, err error)
 	VisitGroupingExpr(v *GroupingExpr) (result interface{}, err error)
 	VisitLiteralExpr(v *LiteralExpr) (result interface{}, err error)
 	VisitLogicalExpr(v *LogicalExpr) (result interface{}, err error)
@@ -35,6 +36,10 @@ func (s StubExprVisitor) VisitAssignExpr(_ *AssignExpr) (interface{}, error) {
 
 func (s StubExprVisitor) VisitBinaryExpr(_ *BinaryExpr) (interface{}, error) {
 	return nil, errors.New("visit func for BinaryExpr is not implemented")
+}
+
+func (s StubExprVisitor) VisitCallExpr(_ *CallExpr) (interface{}, error) {
+	return nil, errors.New("visit func for CallExpr is not implemented")
 }
 
 func (s StubExprVisitor) VisitGroupingExpr(_ *GroupingExpr) (interface{}, error) {
@@ -78,6 +83,18 @@ var _ Expression = (*BinaryExpr)(nil)
 
 func (b *BinaryExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
 	return visitor.VisitBinaryExpr(b)
+}
+
+type CallExpr struct {
+	Callee    Expression
+	Paren     *token.Token
+	Arguments []Expression
+}
+
+var _ Expression = (*CallExpr)(nil)
+
+func (b *CallExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	return visitor.VisitCallExpr(b)
 }
 
 type GroupingExpr struct {
@@ -136,8 +153,10 @@ func (b *VariableExpr) Accept(visitor ExprVisitor) (result interface{}, err erro
 type StmtVisitor interface {
 	VisitBlockStmt(v *BlockStmt) (err error)
 	VisitExprStmt(v *ExprStmt) (err error)
+	VisitFunctionStmt(v *FunctionStmt) (err error)
 	VisitIfStmt(v *IfStmt) (err error)
 	VisitPrintStmt(v *PrintStmt) (err error)
+	VisitReturnStmt(v *ReturnStmt) (err error)
 	VisitVarStmt(v *VarStmt) (err error)
 	VisitWhileStmt(v *WhileStmt) (err error)
 }
@@ -154,12 +173,20 @@ func (s StubExprVisitor) VisitExprStmt(_ *ExprStmt) error {
 	return errors.New("visit func for ExprStmt is not implemented")
 }
 
+func (s StubExprVisitor) VisitFunctionStmt(_ *FunctionStmt) error {
+	return errors.New("visit func for FunctionStmt is not implemented")
+}
+
 func (s StubExprVisitor) VisitIfStmt(_ *IfStmt) error {
 	return errors.New("visit func for IfStmt is not implemented")
 }
 
 func (s StubExprVisitor) VisitPrintStmt(_ *PrintStmt) error {
 	return errors.New("visit func for PrintStmt is not implemented")
+}
+
+func (s StubExprVisitor) VisitReturnStmt(_ *ReturnStmt) error {
+	return errors.New("visit func for ReturnStmt is not implemented")
 }
 
 func (s StubExprVisitor) VisitVarStmt(_ *VarStmt) error {
@@ -190,6 +217,18 @@ func (b *ExprStmt) Accept(visitor StmtVisitor) (err error) {
 	return visitor.VisitExprStmt(b)
 }
 
+type FunctionStmt struct {
+	Name   *token.Token
+	Params []*token.Token
+	Body   []Statement
+}
+
+var _ Statement = (*FunctionStmt)(nil)
+
+func (b *FunctionStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitFunctionStmt(b)
+}
+
 type IfStmt struct {
 	Condition  Expression
 	ThenBranch Statement
@@ -210,6 +249,17 @@ var _ Statement = (*PrintStmt)(nil)
 
 func (b *PrintStmt) Accept(visitor StmtVisitor) (err error) {
 	return visitor.VisitPrintStmt(b)
+}
+
+type ReturnStmt struct {
+	Keyword *token.Token
+	Value   Expression
+}
+
+var _ Statement = (*ReturnStmt)(nil)
+
+func (b *ReturnStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitReturnStmt(b)
 }
 
 type VarStmt struct {

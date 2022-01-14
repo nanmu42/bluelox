@@ -19,7 +19,7 @@ type Interpreter struct {
 
 func NewInterpreter() *Interpreter {
 	return &Interpreter{
-		environment: NewEnvironment(),
+		environment: NewGlobalEnvironment(),
 	}
 }
 
@@ -284,10 +284,7 @@ func (i *Interpreter) VisitVarStmt(v *ast.VarStmt) (err error) {
 		}
 	}
 
-	err = i.environment.Define(v.Name.Lexeme, value)
-	if err != nil {
-		return
-	}
+	i.environment.Define(v.Name.Lexeme, value)
 
 	return
 }
@@ -309,7 +306,7 @@ func (i *Interpreter) VisitAssignExpr(v *ast.AssignExpr) (result interface{}, er
 }
 
 func (i *Interpreter) VisitBlockStmt(v *ast.BlockStmt) (err error) {
-	err = i.executeBlock(v.Stmts, NewEnvironmentChild(i.environment))
+	err = i.executeBlock(v.Stmts, NewChildEnvironment(i.environment))
 	return
 }
 
@@ -388,4 +385,55 @@ func (i *Interpreter) VisitLogicalExpr(v *ast.LogicalExpr) (result interface{}, 
 
 	result, err = i.evaluate(v.Right)
 	return
+}
+
+func (i *Interpreter) VisitCallExpr(v *ast.CallExpr) (result interface{}, err error) {
+	callee, err := i.evaluate(v.Callee)
+	if err != nil {
+		return
+	}
+
+	var arguments []interface{}
+	for _, arg := range v.Arguments {
+		var evaledArg interface{}
+		evaledArg, err = i.evaluate(arg)
+		if err != nil {
+			return
+		}
+
+		arguments = append(arguments, evaledArg)
+	}
+
+	function, ok := callee.(Callable)
+	if !ok {
+		err = fmt.Errorf("can only call functuins and classes, got %T", callee)
+		return
+	}
+	if want, got := function.Arity(), len(arguments); want != got {
+		err = fmt.Errorf("expected %d arguments but got %d", want, got)
+		return
+	}
+
+	return function.Call(i, arguments)
+}
+
+func (i *Interpreter) VisitFunctionStmt(v *ast.FunctionStmt) (err error) {
+	i.environment.Define(v.Name.Lexeme, &function{
+		Declaration: v,
+		Closure:     i.environment,
+	})
+	return nil
+}
+
+func (i *Interpreter) VisitReturnStmt(v *ast.ReturnStmt) (err error) {
+	var value interface{}
+	if v.Value != nil {
+		value, err = i.evaluate(v.Value)
+		if err != nil {
+			return
+		}
+	}
+
+	// unwind the stack
+	panic(&returnPayload{Value: value})
 }
