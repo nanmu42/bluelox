@@ -15,11 +15,18 @@ var _ ast.StmtVisitor = (*Interpreter)(nil)
 
 type Interpreter struct {
 	environment *Environment
+	globals     *Environment
+	// keys are all pointers, so it's fine if we stick with one interpreter.
+	locals map[ast.Expression]int
 }
 
 func NewInterpreter() *Interpreter {
+	globals := NewGlobalEnvironment()
+
 	return &Interpreter{
-		environment: NewGlobalEnvironment(),
+		globals:     globals,
+		environment: globals,
+		locals:      make(map[ast.Expression]int),
 	}
 }
 
@@ -274,6 +281,10 @@ func (i *Interpreter) execute(stmt ast.Statement) error {
 	return stmt.Accept(i)
 }
 
+func (i *Interpreter) Resolve(v ast.Expression, depth int) {
+	i.locals[v] = depth
+}
+
 func (i *Interpreter) VisitVarStmt(v *ast.VarStmt) (err error) {
 	var value interface{}
 
@@ -290,7 +301,7 @@ func (i *Interpreter) VisitVarStmt(v *ast.VarStmt) (err error) {
 }
 
 func (i *Interpreter) VisitVariableExpr(v *ast.VariableExpr) (result interface{}, err error) {
-	result, err = i.environment.Get(v.Name)
+	result, err = i.lookUpVariable(v.Name, v)
 	return
 }
 
@@ -300,7 +311,12 @@ func (i *Interpreter) VisitAssignExpr(v *ast.AssignExpr) (result interface{}, er
 		return
 	}
 
-	err = i.environment.Assign(v.Name, result)
+	distance, ok := i.locals[v]
+	if ok {
+		err = i.environment.AssignAt(distance, v.Name, result)
+	} else {
+		err = i.globals.Assign(v.Name, result)
+	}
 
 	return
 }
@@ -436,4 +452,13 @@ func (i *Interpreter) VisitReturnStmt(v *ast.ReturnStmt) (err error) {
 
 	// unwind the stack
 	panic(&returnPayload{Value: value})
+}
+
+func (i *Interpreter) lookUpVariable(name *token.Token, v *ast.VariableExpr) (result interface{}, err error) {
+	distance, ok := i.locals[v]
+	if ok {
+		return i.environment.GetAt(distance, name.Lexeme)
+	}
+
+	return i.globals.Get(name)
 }

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/nanmu42/bluelox/resolver"
+
 	"github.com/nanmu42/bluelox/interpreter"
 
 	"github.com/nanmu42/bluelox/parser"
@@ -79,6 +81,13 @@ func (l *Lox) run(script []byte) (err error) {
 	p := parser.NewParser(tokens)
 	stmts, err := p.Parse()
 	if err != nil {
+		return
+	}
+
+	resolve := resolver.NewResolver(l.interpreter)
+	err = resolve.ResolveStmts(stmts)
+	if err != nil {
+		err = fmt.Errorf("resolving statements: %w", err)
 		return
 	}
 

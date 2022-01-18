@@ -16,6 +16,30 @@ print nil or "yes"; // "yes".
 	// yes
 }
 
+func ExampleLox_binding_and_resolving() {
+	const code = `
+var a = "global";
+{
+  fun showA() {
+    print a;
+  }
+
+  showA();
+  var a = "block";
+  showA();
+}
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	if err != nil {
+		panic(err)
+	}
+	// Output:
+	// global
+	// global
+}
+
 func ExampleLox_closure() {
 	const code = `fun makeCounter() {
   var i = 0;
