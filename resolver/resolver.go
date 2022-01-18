@@ -1,6 +1,7 @@
 package resolver
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/nanmu42/bluelox/ast"
@@ -17,8 +18,9 @@ var (
 // with the same name in the innermost scope
 // that encloses the expression where the variable is used.
 type Resolver struct {
-	interpreter *interpreter.Interpreter
-	scopes      scopes // used as a stack
+	interpreter     *interpreter.Interpreter
+	scopes          scopes // used as a stack
+	currentFunction FunctionType
 }
 
 func NewResolver(interpreter *interpreter.Interpreter) *Resolver {
@@ -41,10 +43,13 @@ func (r *Resolver) VisitExprStmt(v *ast.ExprStmt) (err error) {
 }
 
 func (r *Resolver) VisitFunctionStmt(v *ast.FunctionStmt) (err error) {
-	r.declare(v.Name)
+	err = r.declare(v.Name)
+	if err != nil {
+		return
+	}
 	r.define(v.Name)
 
-	err = r.resolveFunction(v)
+	err = r.resolveFunction(v, FuncTypeFunc)
 	return
 }
 
@@ -71,6 +76,10 @@ func (r *Resolver) VisitPrintStmt(v *ast.PrintStmt) (err error) {
 }
 
 func (r *Resolver) VisitReturnStmt(v *ast.ReturnStmt) (err error) {
+	if r.currentFunction == FuncTypeNone {
+		err = errors.New("can't return from top-level code")
+		return
+	}
 	if v.Value != nil {
 		return r.resolveExpr(v.Value)
 	}
@@ -79,7 +88,10 @@ func (r *Resolver) VisitReturnStmt(v *ast.ReturnStmt) (err error) {
 }
 
 func (r *Resolver) VisitVarStmt(v *ast.VarStmt) (err error) {
-	r.declare(v.Name)
+	err = r.declare(v.Name)
+	if err != nil {
+		return
+	}
 	if v.Initializer != nil {
 		err = r.resolveExpr(v.Initializer)
 		if err != nil {
@@ -200,12 +212,19 @@ func (r *Resolver) endScope() {
 	r.scopes.Pop()
 }
 
-func (r *Resolver) declare(name *token.Token) {
+func (r *Resolver) declare(name *token.Token) (err error) {
 	if r.scopes.IsEmpty() {
 		return
 	}
 
-	r.scopes.Peek()[name.Lexeme] = false
+	scope := r.scopes.Peek()
+	if _, ok := scope[name.Lexeme]; ok {
+		err = fmt.Errorf("variable %q already existed in this scope", name.Lexeme)
+		return
+	}
+
+	scope[name.Lexeme] = false
+	return
 }
 
 func (r *Resolver) define(name *token.Token) {
@@ -226,12 +245,22 @@ func (r *Resolver) resolveLocal(v ast.Expression, name *token.Token) error {
 	return nil
 }
 
-func (r *Resolver) resolveFunction(v *ast.FunctionStmt) error {
+func (r *Resolver) resolveFunction(v *ast.FunctionStmt, funcType FunctionType) (err error) {
+	enclosingFuncType := r.currentFunction
+
 	r.beginScope()
-	defer r.endScope()
+	r.currentFunction = funcType
+
+	defer func() {
+		r.endScope()
+		r.currentFunction = enclosingFuncType
+	}()
 
 	for _, param := range v.Params {
-		r.declare(param)
+		err = r.declare(param)
+		if err != nil {
+			return
+		}
 		r.define(param)
 	}
 	return r.ResolveStmts(v.Body)

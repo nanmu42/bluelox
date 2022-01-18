@@ -1,5 +1,11 @@
 package lox
 
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
 func ExampleLox_logics() {
 	const code = `
 print "hi" or 2; // "hi".
@@ -173,4 +179,40 @@ print sum;
 	}
 	// Output:
 	// 5050
+}
+
+func Test_Lox_no_local_duplicated(t *testing.T) {
+	const code = `
+var a = "outer";
+{
+  var a = a;
+}
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	require.Error(t, err)
+}
+
+func Test_Lox_no_top_level_return(t *testing.T) {
+	const code = `
+return "surprise!";
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	require.Error(t, err)
+}
+
+func Test_Lox_no_duplicated_declaring(t *testing.T) {
+	const code = `
+fun bad() {
+  var a = "first";
+  var a = "second";
+}
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	require.Error(t, err)
 }
