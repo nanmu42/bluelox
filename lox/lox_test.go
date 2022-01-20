@@ -181,11 +181,109 @@ print sum;
 	// 5050
 }
 
+func ExampleLox_print_class() {
+	const code = `
+class DevonshireCream {
+  serveOn() {
+    return "Scones";
+  }
+}
+
+print DevonshireCream; // Prints "DevonshireCream".
+
+class Bagel {}
+var bagel = Bagel();
+print bagel; // Prints "Bagel instance".
+
+class Bacon {
+  eat() {
+    print "Crunch crunch crunch!";
+  }
+}
+
+Bacon().eat(); // Prints "Crunch crunch crunch!".
+
+class Cake {
+  taste() {
+    var adjective = "delicious";
+    print "The " + this.flavor + " cake is " + adjective + "!";
+  }
+}
+
+var cake = Cake();
+cake.flavor = "German chocolate";
+cake.taste(); // Prints "The German chocolate cake is delicious!".
+
+class Thing {
+  getCallback() {
+    fun localFunction() {
+      print this;
+    }
+
+    return localFunction;
+  }
+}
+
+var callback = Thing().getCallback();
+callback();
+
+class Foo {
+  init() {
+    print "foo initialized";
+  }
+}
+
+var foo = Foo();
+print foo.init();
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	if err != nil {
+		panic(err)
+	}
+	// Output:
+	// DevonshireCream
+	// Bagel instance
+	// Crunch crunch crunch!
+	// The German chocolate cake is delicious!
+	// Thing instance
+	// foo initialized
+	// foo initialized
+	// Foo instance
+}
+
 func Test_Lox_no_local_duplicated(t *testing.T) {
 	const code = `
 var a = "outer";
 {
   var a = a;
+}
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	require.Error(t, err)
+}
+
+func Test_Lox_no_returning_from_init(t *testing.T) {
+	const code = `
+class Foo {
+  init() {
+    return "something else";
+  }
+}
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	require.Error(t, err)
+}
+
+func Test_Lox_invalid_use_of_this(t *testing.T) {
+	const code = `
+fun notAMethod() {
+  print this;
 }
 `
 

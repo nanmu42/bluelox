@@ -403,6 +403,31 @@ func (i *Interpreter) VisitLogicalExpr(v *ast.LogicalExpr) (result interface{}, 
 	return
 }
 
+func (i *Interpreter) VisitSetExpr(v *ast.SetExpr) (result interface{}, err error) {
+	object, err := i.evaluate(v.Object)
+	if err != nil {
+		return
+	}
+
+	instance, ok := object.(*Instance)
+	if !ok {
+		err = fmt.Errorf("only instances have fields, got %T", object)
+		return
+	}
+
+	result, err = i.evaluate(v.Value)
+	if err != nil {
+		return
+	}
+	instance.Set(v.Name, result)
+
+	return
+}
+
+func (i *Interpreter) VisitThisExpr(v *ast.ThisExpr) (result interface{}, err error) {
+	return i.lookUpVariable(v.Keyword, v)
+}
+
 func (i *Interpreter) VisitCallExpr(v *ast.CallExpr) (result interface{}, err error) {
 	callee, err := i.evaluate(v.Callee)
 	if err != nil {
@@ -433,12 +458,45 @@ func (i *Interpreter) VisitCallExpr(v *ast.CallExpr) (result interface{}, err er
 	return function.Call(i, arguments)
 }
 
+func (i *Interpreter) VisitGetExpr(v *ast.GetExpr) (result interface{}, err error) {
+	object, err := i.evaluate(v.Object)
+	if err != nil {
+		return
+	}
+
+	instance, ok := object.(*Instance)
+	if !ok {
+		err = errors.New("only instances have properties")
+		return
+	}
+
+	return instance.Get(v.Name)
+}
+
 func (i *Interpreter) VisitFunctionStmt(v *ast.FunctionStmt) (err error) {
-	i.environment.Define(v.Name.Lexeme, &function{
-		Declaration: v,
-		Closure:     i.environment,
+	i.environment.Define(v.Name.Lexeme, &Function{
+		Declaration:   v,
+		Closure:       i.environment,
+		IsInitializer: false,
 	})
+
 	return nil
+}
+
+func (i *Interpreter) VisitClassStmt(v *ast.ClassStmt) (err error) {
+	i.environment.Define(v.Name.Lexeme, nil)
+
+	methods := make(map[string]*Function, len(v.Methods))
+	for _, method := range v.Methods {
+		methods[method.Name.Lexeme] = &Function{
+			Declaration:   method,
+			Closure:       i.environment,
+			IsInitializer: method.Name.Lexeme == "init",
+		}
+	}
+
+	class := NewClass(v.Name.Lexeme, methods)
+	return i.environment.Assign(v.Name, class)
 }
 
 func (i *Interpreter) VisitReturnStmt(v *ast.ReturnStmt) (err error) {
@@ -454,7 +512,7 @@ func (i *Interpreter) VisitReturnStmt(v *ast.ReturnStmt) (err error) {
 	panic(&returnPayload{Value: value})
 }
 
-func (i *Interpreter) lookUpVariable(name *token.Token, v *ast.VariableExpr) (result interface{}, err error) {
+func (i *Interpreter) lookUpVariable(name *token.Token, v ast.Expression) (result interface{}, err error) {
 	distance, ok := i.locals[v]
 	if ok {
 		return i.environment.GetAt(distance, name.Lexeme)

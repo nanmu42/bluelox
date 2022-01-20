@@ -35,6 +35,11 @@ var exprTypes = Types{
 		Comment: "",
 	},
 	{
+		Name:    `GetExpr`,
+		Fields:  `Object Expression, Name *token.Token`,
+		Comment: "",
+	},
+	{
 		Name:    `GroupingExpr`,
 		Fields:  `Expr Expression`,
 		Comment: "",
@@ -47,6 +52,16 @@ var exprTypes = Types{
 	{
 		Name:    "LogicalExpr",
 		Fields:  "Left Expression, Operator *token.Token, Right Expression",
+		Comment: "",
+	},
+	{
+		Name:    "SetExpr",
+		Fields:  "Object Expression, Name *token.Token, Value Expression",
+		Comment: "",
+	},
+	{
+		Name:    "ThisExpr",
+		Fields:  "Keyword *token.Token",
 		Comment: "",
 	},
 	{
@@ -65,6 +80,11 @@ var stmtTypes = Types{
 	{
 		Name:    "BlockStmt",
 		Fields:  "Stmts []Statement",
+		Comment: "",
+	},
+	{
+		Name:    "ClassStmt",
+		Fields:  "Name *token.Token, Methods []*FunctionStmt",
 		Comment: "",
 	},
 	{

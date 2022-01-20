@@ -19,9 +19,12 @@ type ExprVisitor interface {
 	VisitAssignExpr(v *AssignExpr) (result interface{}, err error)
 	VisitBinaryExpr(v *BinaryExpr) (result interface{}, err error)
 	VisitCallExpr(v *CallExpr) (result interface{}, err error)
+	VisitGetExpr(v *GetExpr) (result interface{}, err error)
 	VisitGroupingExpr(v *GroupingExpr) (result interface{}, err error)
 	VisitLiteralExpr(v *LiteralExpr) (result interface{}, err error)
 	VisitLogicalExpr(v *LogicalExpr) (result interface{}, err error)
+	VisitSetExpr(v *SetExpr) (result interface{}, err error)
+	VisitThisExpr(v *ThisExpr) (result interface{}, err error)
 	VisitUnaryExpr(v *UnaryExpr) (result interface{}, err error)
 	VisitVariableExpr(v *VariableExpr) (result interface{}, err error)
 }
@@ -42,6 +45,10 @@ func (s StubExprVisitor) VisitCallExpr(_ *CallExpr) (interface{}, error) {
 	return nil, errors.New("visit func for CallExpr is not implemented")
 }
 
+func (s StubExprVisitor) VisitGetExpr(_ *GetExpr) (interface{}, error) {
+	return nil, errors.New("visit func for GetExpr is not implemented")
+}
+
 func (s StubExprVisitor) VisitGroupingExpr(_ *GroupingExpr) (interface{}, error) {
 	return nil, errors.New("visit func for GroupingExpr is not implemented")
 }
@@ -52,6 +59,14 @@ func (s StubExprVisitor) VisitLiteralExpr(_ *LiteralExpr) (interface{}, error) {
 
 func (s StubExprVisitor) VisitLogicalExpr(_ *LogicalExpr) (interface{}, error) {
 	return nil, errors.New("visit func for LogicalExpr is not implemented")
+}
+
+func (s StubExprVisitor) VisitSetExpr(_ *SetExpr) (interface{}, error) {
+	return nil, errors.New("visit func for SetExpr is not implemented")
+}
+
+func (s StubExprVisitor) VisitThisExpr(_ *ThisExpr) (interface{}, error) {
+	return nil, errors.New("visit func for ThisExpr is not implemented")
 }
 
 func (s StubExprVisitor) VisitUnaryExpr(_ *UnaryExpr) (interface{}, error) {
@@ -97,6 +112,17 @@ func (b *CallExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
 	return visitor.VisitCallExpr(b)
 }
 
+type GetExpr struct {
+	Object Expression
+	Name   *token.Token
+}
+
+var _ Expression = (*GetExpr)(nil)
+
+func (b *GetExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	return visitor.VisitGetExpr(b)
+}
+
 type GroupingExpr struct {
 	Expr Expression
 }
@@ -129,6 +155,28 @@ func (b *LogicalExpr) Accept(visitor ExprVisitor) (result interface{}, err error
 	return visitor.VisitLogicalExpr(b)
 }
 
+type SetExpr struct {
+	Object Expression
+	Name   *token.Token
+	Value  Expression
+}
+
+var _ Expression = (*SetExpr)(nil)
+
+func (b *SetExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	return visitor.VisitSetExpr(b)
+}
+
+type ThisExpr struct {
+	Keyword *token.Token
+}
+
+var _ Expression = (*ThisExpr)(nil)
+
+func (b *ThisExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	return visitor.VisitThisExpr(b)
+}
+
 type UnaryExpr struct {
 	Operator *token.Token
 	Right    Expression
@@ -152,6 +200,7 @@ func (b *VariableExpr) Accept(visitor ExprVisitor) (result interface{}, err erro
 
 type StmtVisitor interface {
 	VisitBlockStmt(v *BlockStmt) (err error)
+	VisitClassStmt(v *ClassStmt) (err error)
 	VisitExprStmt(v *ExprStmt) (err error)
 	VisitFunctionStmt(v *FunctionStmt) (err error)
 	VisitIfStmt(v *IfStmt) (err error)
@@ -167,6 +216,10 @@ var _ ExprVisitor = StubExprVisitor{}
 
 func (s StubExprVisitor) VisitBlockStmt(_ *BlockStmt) error {
 	return errors.New("visit func for BlockStmt is not implemented")
+}
+
+func (s StubExprVisitor) VisitClassStmt(_ *ClassStmt) error {
+	return errors.New("visit func for ClassStmt is not implemented")
 }
 
 func (s StubExprVisitor) VisitExprStmt(_ *ExprStmt) error {
@@ -205,6 +258,17 @@ var _ Statement = (*BlockStmt)(nil)
 
 func (b *BlockStmt) Accept(visitor StmtVisitor) (err error) {
 	return visitor.VisitBlockStmt(b)
+}
+
+type ClassStmt struct {
+	Name    *token.Token
+	Methods []*FunctionStmt
+}
+
+var _ Statement = (*ClassStmt)(nil)
+
+func (b *ClassStmt) Accept(visitor StmtVisitor) (err error) {
+	return visitor.VisitClassStmt(b)
 }
 
 type ExprStmt struct {

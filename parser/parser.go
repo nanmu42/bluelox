@@ -308,6 +308,10 @@ func (p *Parser) primary() (expr ast.Expression, err error) {
 		expr = &ast.LiteralExpr{Value: nil}
 		return
 	}
+	if p.match(token.This) {
+		expr = &ast.ThisExpr{Keyword: p.previous()}
+		return
+	}
 	if p.match(token.Identifier) {
 		expr = &ast.VariableExpr{Name: p.previous()}
 		return
@@ -396,8 +400,12 @@ func (p *Parser) exprStmt() (stmt ast.Statement, err error) {
 	return
 }
 
-// declaration → funDecl | varDecl | statement ;
+// declaration → classDecl | funDecl | varDecl | statement ;
 func (p *Parser) declaration() (stmt ast.Statement, err error) {
+	if p.match(token.Class) {
+		return p.classDecl()
+	}
+
 	if p.match(token.Fun) {
 		return p.function("function")
 	}
@@ -504,7 +512,7 @@ func (p *Parser) varDecl() (stmt ast.Statement, err error) {
 	return
 }
 
-// assignment → IDENTIFIER "=" assignment | or ;
+// assignment → ( call "." )? IDENTIFIER "=" assignment | logic_or ;
 func (p *Parser) assignment() (expr ast.Expression, err error) {
 	expr, err = p.or()
 	if err != nil {
@@ -515,20 +523,30 @@ func (p *Parser) assignment() (expr ast.Expression, err error) {
 		return
 	}
 
-	value, err := p.assignment()
+	var value ast.Expression
+	value, err = p.assignment()
 	if err != nil {
 		err = fmt.Errorf("parsing r-value: %w", err)
 		return
 	}
-	name, ok := expr.(*ast.VariableExpr)
-	if !ok {
-		err = errors.New("invalid assignment target")
-		return
-	}
 
-	expr = &ast.AssignExpr{
-		Name:  name.Name,
-		Value: value,
+	if get, ok := expr.(*ast.GetExpr); ok {
+		expr = &ast.SetExpr{
+			Object: get.Object,
+			Name:   get.Name,
+			Value:  value,
+		}
+	} else {
+		name, ok := expr.(*ast.VariableExpr)
+		if !ok {
+			err = errors.New("invalid assignment target")
+			return
+		}
+
+		expr = &ast.AssignExpr{
+			Name:  name.Name,
+			Value: value,
+		}
 	}
 
 	return
@@ -758,7 +776,7 @@ func (p *Parser) forStmt() (stmt ast.Statement, err error) {
 	return
 }
 
-// call  → ( "!" | "-" ) unary | call ;
+// call  → primary ( "(" arguments? ")" | "." IDENTIFIER )* ;
 func (p *Parser) call() (expr ast.Expression, err error) {
 	expr, err = p.primary()
 	if err != nil {
@@ -770,6 +788,17 @@ func (p *Parser) call() (expr ast.Expression, err error) {
 			expr, err = p.finishCall(expr)
 			if err != nil {
 				return
+			}
+		} else if p.match(token.Dot) {
+			var name *token.Token
+			name, err = p.consume(token.Identifier)
+			if err != nil {
+				err = fmt.Errorf("expected property name after '.': %w", err)
+				return
+			}
+			expr = &ast.GetExpr{
+				Object: expr,
+				Name:   name,
 			}
 		} else {
 			break
@@ -841,6 +870,43 @@ func (p *Parser) returnStmt() (stmt ast.Statement, err error) {
 	stmt = &ast.ReturnStmt{
 		Keyword: keyword,
 		Value:   value,
+	}
+
+	return
+}
+
+// classDecl  → "class" IDENTIFIER "{" function* "}" ;
+func (p *Parser) classDecl() (stmt ast.Statement, err error) {
+	name, err := p.consume(token.Identifier)
+	if err != nil {
+		err = fmt.Errorf("expected class name: %w", err)
+		return
+	}
+
+	_, err = p.consume(token.LeftBrace)
+	if err != nil {
+		err = fmt.Errorf("expected '{' before class body: %w", err)
+		return
+	}
+	var methods []*ast.FunctionStmt
+	for !p.isAtEnd() && !p.check(token.RightBrace) {
+		var method ast.Statement
+		method, err = p.function("method")
+		if err != nil {
+			return
+		}
+		methods = append(methods, method.(*ast.FunctionStmt))
+	}
+
+	_, err = p.consume(token.RightBrace)
+	if err != nil {
+		err = fmt.Errorf("expected '}' after class body: %w", err)
+		return
+	}
+
+	stmt = &ast.ClassStmt{
+		Name:    name,
+		Methods: methods,
 	}
 
 	return

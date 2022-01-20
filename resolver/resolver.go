@@ -21,6 +21,7 @@ type Resolver struct {
 	interpreter     *interpreter.Interpreter
 	scopes          scopes // used as a stack
 	currentFunction FunctionType
+	currentClass    ClassType
 }
 
 func NewResolver(interpreter *interpreter.Interpreter) *Resolver {
@@ -81,6 +82,10 @@ func (r *Resolver) VisitReturnStmt(v *ast.ReturnStmt) (err error) {
 		return
 	}
 	if v.Value != nil {
+		if r.currentFunction == FuncTypeInitializer {
+			err = fmt.Errorf("can't return a value from an initializer: %s", v.Keyword)
+			return
+		}
 		return r.resolveExpr(v.Value)
 	}
 
@@ -147,6 +152,11 @@ func (r *Resolver) VisitCallExpr(v *ast.CallExpr) (result interface{}, err error
 	return
 }
 
+func (r *Resolver) VisitGetExpr(v *ast.GetExpr) (result interface{}, err error) {
+	err = r.resolveExpr(v.Object)
+	return
+}
+
 func (r *Resolver) VisitGroupingExpr(v *ast.GroupingExpr) (result interface{}, err error) {
 	err = r.resolveExpr(v.Expr)
 	return
@@ -166,6 +176,26 @@ func (r *Resolver) VisitLogicalExpr(v *ast.LogicalExpr) (result interface{}, err
 	return
 }
 
+func (r *Resolver) VisitSetExpr(v *ast.SetExpr) (result interface{}, err error) {
+	err = r.resolveExpr(v.Value)
+	if err != nil {
+		return
+	}
+
+	err = r.resolveExpr(v.Object)
+	return
+}
+
+func (r *Resolver) VisitThisExpr(v *ast.ThisExpr) (result interface{}, err error) {
+	if r.currentClass == ClassTypeNone {
+		err = fmt.Errorf("can't use 'this' outside of a class: %s", v.Keyword)
+		return
+	}
+
+	err = r.resolveLocal(v, v.Keyword)
+	return
+}
+
 func (r *Resolver) VisitUnaryExpr(v *ast.UnaryExpr) (result interface{}, err error) {
 	err = r.resolveExpr(v.Right)
 	return
@@ -181,6 +211,40 @@ func (r *Resolver) VisitVariableExpr(v *ast.VariableExpr) (result interface{}, e
 	}
 
 	err = r.resolveLocal(v, v.Name)
+	return
+}
+
+func (r *Resolver) VisitClassStmt(v *ast.ClassStmt) (err error) {
+	enclosingClass := r.currentClass
+	r.currentClass = ClassTypeClass
+	defer func() {
+		r.currentClass = enclosingClass
+	}()
+
+	err = r.declare(v.Name)
+	if err != nil {
+		return
+	}
+
+	r.define(v.Name)
+
+	r.beginScope()
+	defer r.endScope()
+	r.scopes.Peek()["this"] = true
+
+	for _, method := range v.Methods {
+		var funcType FunctionType
+		if method.Name.Lexeme == "init" {
+			funcType = FuncTypeInitializer
+		} else {
+			funcType = FuncTypeMethod
+		}
+		err = r.resolveFunction(method, funcType)
+		if err != nil {
+			return
+		}
+	}
+
 	return
 }
 

@@ -6,4 +6,6 @@ type FunctionType int
 const (
 	FuncTypeNone FunctionType = iota
 	FuncTypeFunc
+	FuncTypeInitializer
+	FuncTypeMethod
 )

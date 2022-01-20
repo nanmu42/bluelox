@@ -15,21 +15,31 @@ type Callable interface {
 	String() string
 }
 
-type function struct {
-	Declaration *ast.FunctionStmt
-	Closure     *Environment
+type Function struct {
+	Declaration   *ast.FunctionStmt
+	Closure       *Environment
+	IsInitializer bool
 }
 
-func (f *function) Arity() int {
+func (f *Function) Arity() int {
 	return len(f.Declaration.Params)
 }
 
-func (f *function) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}, err error) {
+func (f *Function) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}, err error) {
 	env := NewChildEnvironment(f.Closure)
 	for i, param := range f.Declaration.Params {
 		env.Define(param.Lexeme, arguments[i])
 	}
 
+	defer func() {
+		if f.IsInitializer {
+			var badThis error
+			result, badThis = f.Closure.GetAt(0, "this")
+			if badThis != nil {
+				panic(badThis)
+			}
+		}
+	}()
 	defer func() {
 		panicReason := recover()
 		if panicReason == nil {
@@ -47,8 +57,18 @@ func (f *function) Call(interpreter *Interpreter, arguments []interface{}) (resu
 	return
 }
 
-func (f *function) String() string {
+func (f *Function) String() string {
 	return fmt.Sprintf("<fn %s>", f.Declaration.Name.Lexeme)
+}
+
+func (f *Function) Bind(i *Instance) *Function {
+	env := NewChildEnvironment(f.Closure)
+	env.Define("this", i)
+	return &Function{
+		Declaration:   f.Declaration,
+		Closure:       env,
+		IsInitializer: f.IsInitializer,
+	}
 }
 
 type returnPayload struct {

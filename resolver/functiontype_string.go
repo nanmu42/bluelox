@@ -10,11 +10,13 @@ func _() {
 	var x [1]struct{}
 	_ = x[FuncTypeNone-0]
 	_ = x[FuncTypeFunc-1]
+	_ = x[FuncTypeInitializer-2]
+	_ = x[FuncTypeMethod-3]
 }
 
-const _FunctionType_name = "FuncTypeNoneFuncTypeFunc"
+const _FunctionType_name = "FuncTypeNoneFuncTypeFuncFuncTypeInitializerFuncTypeMethod"
 
-var _FunctionType_index = [...]uint8{0, 12, 24}
+var _FunctionType_index = [...]uint8{0, 12, 24, 43, 57}
 
 func (i FunctionType) String() string {
 	if i < 0 || i >= FunctionType(len(_FunctionType_index)-1) {
