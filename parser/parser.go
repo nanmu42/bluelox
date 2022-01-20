@@ -289,7 +289,9 @@ func (p *Parser) unary() (expr ast.Expression, err error) {
 	return p.call()
 }
 
-// primary → NUMBER | STRING | "true" | "false" | "nil" | IDENTIFIER | "(" expression ")" ;
+// primary → → "true" | "false" | "nil" | "this"
+//               | NUMBER | STRING | IDENTIFIER | "(" expression ")"
+//               | "super" "." IDENTIFIER ;
 func (p *Parser) primary() (expr ast.Expression, err error) {
 	if p.match(token.Number, token.String) {
 		expr = &ast.LiteralExpr{Value: p.previous().Literal}
@@ -306,6 +308,26 @@ func (p *Parser) primary() (expr ast.Expression, err error) {
 	}
 	if p.match(token.Nil) {
 		expr = &ast.LiteralExpr{Value: nil}
+		return
+	}
+	if p.match(token.Super) {
+		keyword := p.previous()
+		_, err = p.consume(token.Dot)
+		if err != nil {
+			err = fmt.Errorf("expected '.' after 'super': %w", err)
+			return
+		}
+
+		var method *token.Token
+		method, err = p.consume(token.Identifier)
+		if err != nil {
+			err = fmt.Errorf("expected superclass method name: %w", err)
+			return
+		}
+		expr = &ast.SuperExpr{
+			Keyword: keyword,
+			Method:  method,
+		}
 		return
 	}
 	if p.match(token.This) {
@@ -875,12 +897,25 @@ func (p *Parser) returnStmt() (stmt ast.Statement, err error) {
 	return
 }
 
-// classDecl  → "class" IDENTIFIER "{" function* "}" ;
+// classDecl  → "class" IDENTIFIER ( "<" IDENTIFIER )? "{" function* "}" ;
 func (p *Parser) classDecl() (stmt ast.Statement, err error) {
 	name, err := p.consume(token.Identifier)
 	if err != nil {
 		err = fmt.Errorf("expected class name: %w", err)
 		return
+	}
+
+	var superClass *ast.VariableExpr
+	if p.match(token.Less) {
+		_, err = p.consume(token.Identifier)
+		if err != nil {
+			err = fmt.Errorf("expected superclass name: %w", err)
+			return
+		}
+
+		superClass = &ast.VariableExpr{
+			Name: p.previous(),
+		}
 	}
 
 	_, err = p.consume(token.LeftBrace)
@@ -905,8 +940,9 @@ func (p *Parser) classDecl() (stmt ast.Statement, err error) {
 	}
 
 	stmt = &ast.ClassStmt{
-		Name:    name,
-		Methods: methods,
+		Name:       name,
+		SuperClass: superClass,
+		Methods:    methods,
 	}
 
 	return

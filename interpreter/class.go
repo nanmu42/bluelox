@@ -7,19 +7,13 @@ import (
 )
 
 type Class struct {
-	name    string
-	methods map[string]*Function
-}
-
-func NewClass(name string, methods map[string]*Function) *Class {
-	return &Class{
-		name:    name,
-		methods: methods,
-	}
+	Name       string
+	SuperClass *Class
+	Methods    map[string]*Function
 }
 
 func (c *Class) String() string {
-	return c.name
+	return c.Name
 }
 
 func (c *Class) Arity() int {
@@ -45,7 +39,10 @@ func (c *Class) Call(interpreter *Interpreter, arguments []interface{}) (result 
 }
 
 func (c *Class) FindMethod(name string) (method *Function, ok bool) {
-	method, ok = c.methods[name]
+	method, ok = c.Methods[name]
+	if !ok && c.SuperClass != nil {
+		method, ok = c.SuperClass.FindMethod(name)
+	}
 	return
 }
 
@@ -55,7 +52,7 @@ type Instance struct {
 }
 
 func (i Instance) String() string {
-	return i.class.name + " instance"
+	return i.class.Name + " instance"
 }
 
 func (i *Instance) Get(name *token.Token) (property interface{}, err error) {

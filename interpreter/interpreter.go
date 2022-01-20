@@ -484,7 +484,28 @@ func (i *Interpreter) VisitFunctionStmt(v *ast.FunctionStmt) (err error) {
 }
 
 func (i *Interpreter) VisitClassStmt(v *ast.ClassStmt) (err error) {
+	var superclass *Class
+	if v.SuperClass != nil {
+		var rawSuperclass interface{}
+		rawSuperclass, err = i.evaluate(v.SuperClass)
+		if err != nil {
+			return
+		}
+
+		var ok bool
+		superclass, ok = rawSuperclass.(*Class)
+		if !ok {
+			err = fmt.Errorf("superclass must be a class, got %T", rawSuperclass)
+			return
+		}
+	}
+
 	i.environment.Define(v.Name.Lexeme, nil)
+
+	if v.SuperClass != nil {
+		i.environment = NewChildEnvironment(i.environment)
+		i.environment.Define("super", superclass)
+	}
 
 	methods := make(map[string]*Function, len(v.Methods))
 	for _, method := range v.Methods {
@@ -495,8 +516,44 @@ func (i *Interpreter) VisitClassStmt(v *ast.ClassStmt) (err error) {
 		}
 	}
 
-	class := NewClass(v.Name.Lexeme, methods)
+	class := &Class{
+		Name:       v.Name.Lexeme,
+		SuperClass: superclass,
+		Methods:    methods,
+	}
+
+	if v.SuperClass != nil {
+		i.environment = i.environment.parent
+	}
+
 	return i.environment.Assign(v.Name, class)
+}
+
+func (i *Interpreter) VisitSuperExpr(v *ast.SuperExpr) (result interface{}, err error) {
+	distance, ok := i.locals[v]
+	if !ok {
+		panic("no super expression predefined")
+	}
+	rawSuperclass, err := i.environment.GetAt(distance, "super")
+	if err != nil {
+		panic("no superclass predefined")
+	}
+	superClass := rawSuperclass.(*Class)
+
+	rawObject, err := i.environment.GetAt(distance-1, "this")
+	if err != nil {
+		panic("no 'this' preceding super")
+	}
+	instance := rawObject.(*Instance)
+	method, ok := superClass.FindMethod(v.Method.Lexeme)
+	if !ok {
+		err = fmt.Errorf("super class does not have method %q: %s", v.Method.Lexeme, v.Method)
+		return
+	}
+
+	result = method.Bind(instance)
+
+	return
 }
 
 func (i *Interpreter) VisitReturnStmt(v *ast.ReturnStmt) (err error) {

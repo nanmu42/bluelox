@@ -60,6 +60,11 @@ var exprTypes = Types{
 		Comment: "",
 	},
 	{
+		Name:    "SuperExpr",
+		Fields:  "Keyword *token.Token, Method *token.Token",
+		Comment: "",
+	},
+	{
 		Name:    "ThisExpr",
 		Fields:  "Keyword *token.Token",
 		Comment: "",
@@ -84,7 +89,7 @@ var stmtTypes = Types{
 	},
 	{
 		Name:    "ClassStmt",
-		Fields:  "Name *token.Token, Methods []*FunctionStmt",
+		Fields:  "Name *token.Token, SuperClass *VariableExpr, Methods []*FunctionStmt",
 		Comment: "",
 	},
 	{

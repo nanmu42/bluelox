@@ -24,6 +24,7 @@ type ExprVisitor interface {
 	VisitLiteralExpr(v *LiteralExpr) (result interface{}, err error)
 	VisitLogicalExpr(v *LogicalExpr) (result interface{}, err error)
 	VisitSetExpr(v *SetExpr) (result interface{}, err error)
+	VisitSuperExpr(v *SuperExpr) (result interface{}, err error)
 	VisitThisExpr(v *ThisExpr) (result interface{}, err error)
 	VisitUnaryExpr(v *UnaryExpr) (result interface{}, err error)
 	VisitVariableExpr(v *VariableExpr) (result interface{}, err error)
@@ -63,6 +64,10 @@ func (s StubExprVisitor) VisitLogicalExpr(_ *LogicalExpr) (interface{}, error) {
 
 func (s StubExprVisitor) VisitSetExpr(_ *SetExpr) (interface{}, error) {
 	return nil, errors.New("visit func for SetExpr is not implemented")
+}
+
+func (s StubExprVisitor) VisitSuperExpr(_ *SuperExpr) (interface{}, error) {
+	return nil, errors.New("visit func for SuperExpr is not implemented")
 }
 
 func (s StubExprVisitor) VisitThisExpr(_ *ThisExpr) (interface{}, error) {
@@ -167,6 +172,17 @@ func (b *SetExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
 	return visitor.VisitSetExpr(b)
 }
 
+type SuperExpr struct {
+	Keyword *token.Token
+	Method  *token.Token
+}
+
+var _ Expression = (*SuperExpr)(nil)
+
+func (b *SuperExpr) Accept(visitor ExprVisitor) (result interface{}, err error) {
+	return visitor.VisitSuperExpr(b)
+}
+
 type ThisExpr struct {
 	Keyword *token.Token
 }
@@ -261,8 +277,9 @@ func (b *BlockStmt) Accept(visitor StmtVisitor) (err error) {
 }
 
 type ClassStmt struct {
-	Name    *token.Token
-	Methods []*FunctionStmt
+	Name       *token.Token
+	SuperClass *VariableExpr
+	Methods    []*FunctionStmt
 }
 
 var _ Statement = (*ClassStmt)(nil)

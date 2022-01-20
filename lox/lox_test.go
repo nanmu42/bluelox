@@ -181,6 +181,66 @@ print sum;
 	// 5050
 }
 
+func ExampleLox_inheritance() {
+	const code = `
+class Doughnut {
+  cook() {
+    print "Fry until golden brown.";
+  }
+}
+
+class BostonCream < Doughnut {
+  cook() {
+    super.cook();
+    print "Pipe full of custard and coat with chocolate.";
+  }
+}
+
+BostonCream().cook();
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	if err != nil {
+		panic(err)
+	}
+	// Output:
+	// Fry until golden brown.
+	// Pipe full of custard and coat with chocolate.
+}
+
+func ExampleLox_inheritance2() {
+	const code = `
+class A {
+  method() {
+    print "A method";
+  }
+}
+
+class B < A {
+  method() {
+    print "B method";
+  }
+
+  test() {
+    super.method();
+  }
+}
+
+class C < B {}
+
+C().test();
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	if err != nil {
+		panic(err)
+	}
+	// Output:
+	// A method
+}
+
 func ExampleLox_print_class() {
 	const code = `
 class DevonshireCream {
@@ -259,6 +319,31 @@ var a = "outer";
 {
   var a = a;
 }
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	require.Error(t, err)
+}
+
+func Test_Lox_no_invalid_super(t *testing.T) {
+	const code = `
+class Eclair {
+  cook() {
+    super.cook();
+    print "Pipe full of crème pâtissière.";
+  }
+}
+`
+
+	l := NewLox()
+	err := l.run([]byte(code))
+	require.Error(t, err)
+}
+
+func Test_Lox_no_invalid_super2(t *testing.T) {
+	const code = `
+super.notEvenInAClass();
 `
 
 	l := NewLox()

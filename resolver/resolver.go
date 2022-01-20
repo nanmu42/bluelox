@@ -228,6 +228,24 @@ func (r *Resolver) VisitClassStmt(v *ast.ClassStmt) (err error) {
 
 	r.define(v.Name)
 
+	if v.SuperClass != nil {
+		r.currentClass = ClassTypeSubclass
+
+		if v.SuperClass.Name.Lexeme == v.Name.Lexeme {
+			err = errors.New("a class can't inherit from itself")
+			return
+		}
+
+		err = r.resolveExpr(v.SuperClass)
+		if err != nil {
+			return
+		}
+
+		r.beginScope()
+		defer r.endScope()
+		r.scopes.Peek()["super"] = true
+	}
+
 	r.beginScope()
 	defer r.endScope()
 	r.scopes.Peek()["this"] = true
@@ -245,6 +263,19 @@ func (r *Resolver) VisitClassStmt(v *ast.ClassStmt) (err error) {
 		}
 	}
 
+	return
+}
+
+func (r *Resolver) VisitSuperExpr(v *ast.SuperExpr) (result interface{}, err error) {
+	if r.currentClass == ClassTypeNone {
+		err = fmt.Errorf("can't use 'super' outside of a class: %s", v)
+		return
+	} else if r.currentClass != ClassTypeSubclass {
+		err = fmt.Errorf("can't use 'super' in a class with no superclass: %s", v)
+		return
+	}
+
+	err = r.resolveLocal(v, v.Keyword)
 	return
 }
 
