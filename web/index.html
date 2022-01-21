@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head><title>Language Selection | 选择语言</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel=canonical href=/en>
+    <meta name=robots content="noindex">
+    <meta charset=utf-8>
+    <noscript>
+        <meta http-equiv=refresh content="0; url=/en">
+    </noscript>
+    <script>(function () {
+        const getFirstBrowserLanguage = function () {
+            let nav = window.navigator,
+                browserLanguagePropertyKeys = ['language', 'browserLanguage', 'systemLanguage', 'userLanguage'], i,
+                language
+            if (Array.isArray(nav.languages)) {
+                for (i = 0; i < nav.languages.length; i++) {
+                    language = nav.languages[i]
+                    if (language && language.length) {
+                        return language
+                    }
+                }
+            }
+            for (i = 0; i < browserLanguagePropertyKeys.length; i++) {
+                language = nav[browserLanguagePropertyKeys[i]]
+                if (language && language.length) {
+                    return language
+                }
+            }
+            return 'en'
+        }
+        const preferLang = getFirstBrowserLanguage()
+        // if (preferLang.indexOf('zh') !== -1) {
+        //     window.location.replace('/zh-cn/')
+        // } else {
+        //     window.location.replace('/en/')
+        // }
+    })()</script>
+    <style>
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+        }
+        h1, h2, p {
+            text-align: center;
+        }
+        span {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<h1>Language Selection | <span>选择语言</span></h1>
+<h2><a href=/en/>English</a></h2>
+<h2><a href=/zh-cn/>中文</a></h2>
+<footer>
+    <p>China ICP License No: <a href=http://beian.miit.gov.cn/ rel="nofollow noopener"
+        target=_blank>滇ICP备17001267号-1</a></p>
+</footer>
+</body>
+</html>
