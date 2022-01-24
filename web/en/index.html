@@ -3,50 +3,86 @@
 <head>
     <title>Lox Playground - Run your script right in your browser</title>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/css/styles.css">
     <!--  TODO: add translation link meta  -->
-    <meta name="description" content="The Lox Playground lets you run your own Lox script in your browser, with WASM version of BlueLox, a tree-walking interpreter implemented in Golang for Lox.">
+    <meta name="description" content="The Lox Playground lets you run your own Lox script in your browser via WASM version of BlueLox, a tree-walking interpreter implemented in Golang for Lox.">
 </head>
 <body>
 <main>
-    <p><b>About the Playground</b></p>
-    <p>
-        The Lox Playground lets you run your own Lox script in your browser,
-        with WASM version of <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox</a>,
-        a tree-walking interpreter implemented in Golang for Lox.
-    </p>
-    <p>
-        Lox is a programing language by Robert Nystrom, introduced in his wonderful book
-        <a href="https://craftinginterpreters.com/" rel="noopener" target="_blank">Crafting Interpreters</a>,
-        where he constructs a Java version interpreter(jlox) line by line, with detailed explanation
-        and full packs of jokes about breakfast.
-    </p>
-    <p>
-        You may find the Lox Playground helpful during your learning and coding as it may be your stage
-        for trial-and-error and implementation reference.
-    </p>
-    <p>
-        The implementation of <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox</a>
-        is almost identical to jlox, except:
-    </p>
-    <ul>
-        <li>The error message is not the same word by word, although the efforts making them semantically equal has been made.</li>
-        <li>A extra native function, <code>sleep(millisecond)</code>, is added to support playground example.</li>
-        <li>BlueLox takes care of comments during lexing and parsing, so that <code>loxfmt</code> works.</li>
-    </ul>
-    <p>
-        Browser WASM support is required. Raise questions and issues to
-        <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox Repo</a>
-        if the need arises. Stars, suggestions and contributions are welcome.
-    </p>
+    <div class="PlayPage">
+        <div class="Playground-controls">
+            <h1 class="Playground-title">The Lox Playground</h1>
+            <div class="Playground-buttons">
+                <button id="run" title="Run this code [shift-enter]" class="Button Button--primary Playground-runButton">Run</button>
+                <button id="fmt" title="Format this code" class="Button">Format</button>
+            </div>
+            <select aria-label="Code examples" class="Playground-selectExample">
+                <option value="hello.lox">Hello, World!</option>
+                <option value="life.lox">Conway's Game of Life</option>
+                <option value="fib.lox">Fibonacci Closure</option>
+            </select>
+        </div>
+        <div class="Playground-inputContainer">
+            <div id="wrap">
+            <textarea id="code" name="code" class="Playground-input" autocorrect="off" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Try Lox">// You can edit this code!
+// Click here and start typing.
+print "Hello, 世界"</textarea>
+            </div>
+        </div>
+        <div class="Playground-outputContainer">
+            <pre class="Playground-output"><noscript>Hello, 世界</noscript></pre>
+        </div>
+        <div class="PlayAbout">
+            <p><b>About the Playground</b></p>
+            <p>
+                The Lox Playground lets you run your own Lox script in your browser
+                via WASM version of <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox</a>,
+                a tree-walking interpreter implemented in Golang for Lox.
+            </p>
+            <p>
+                Lox is a programing language by Robert Nystrom, introduced in his wonderful book
+                <a href="https://craftinginterpreters.com/" rel="noopener" target="_blank">Crafting Interpreters</a>,
+                where he constructs a Java version interpreter(jlox) line by line, with detailed tutorial
+                and a full pack of jokes about breakfast.
+            </p>
+            <p>
+                You may find the Lox Playground helpful during your learning and coding as it may be your stage
+                for trial-and-error and implementation reference.
+            </p>
+            <p>
+                The implementation of <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox</a>
+                is almost identical to jlox, except:
+            </p>
+            <ul>
+                <li>The error message is not the same word by word, although the efforts making them semantically equal has been made.</li>
+                <li>A extra native function, <code>sleep(millisecond)</code>, is added to support playground examples.</li>
+                <li>BlueLox takes care of comments during lexing and parsing, so that <code>loxfmt</code> works.</li>
+            </ul>
+            <p>
+                Browser WASM support is required. Raise questions and issues to
+                <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox Repo</a>
+                if the need arises. Stars, suggestions and contributions are welcome.
+            </p>
+        </div>
+    </div>
+    <script src="/js/jquery-linedtextarea.js" defer></script>
+    <script src="/js/playsite.js" defer></script>
 </main>
-<footer>
-    <p>
-        Lox programing language and <a href="https://craftinginterpreters.com/" rel="noopener" target="_blank">Crafting Interpreters</a> are works by
-        <a href="https://twitter.com/intent/user?screen_name=munificentbob" rel="noopener" target="_blank">Robert Nystrom</a>.
-    </p>
-    <p>
-        The Lox Playground takes <a href="https://go.dev/play/" rel="noopener" target="_blank">Go Playground</a> as implementation reference.
-    </p>
+<footer class="Footer">
+    <div class="Container">
+        <p>
+            Lox programing language and <a href="https://craftinginterpreters.com/" rel="noopener" target="_blank">Crafting Interpreters</a>(<a
+                href="/licenses/craftingInterpreters.txt">license</a>) are works by
+            <a href="https://twitter.com/intent/user?screen_name=munificentbob" rel="noopener" target="_blank">Robert Nystrom</a>.
+        </p>
+        <p>
+            The Lox Playground borrows lots of ideas, code and styles from <a href="https://go.dev/play/" rel="noopener" target="_blank">Go Playground</a>(<a
+                href="/licenses/go.txt">license</a>).
+        </p>
+        <p>© 2022 LI Zhennan</p>
+    </div>
+    <script src="/js/jquery.min.js"></script>
 </footer>
 </body>
 </html>

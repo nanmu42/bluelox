@@ -1,0 +1,378 @@
+*,
+:before,
+:after {
+    box-sizing: border-box;
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+    max-height: 100%;
+    line-height: 1.4;
+    margin: 0;
+}
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+h1, h2, h3, h4, h5, h6, p, ol, ul {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+table {
+    -webkit-border-horizontal-spacing: 0;
+    -webkit-border-vertical-spacing: 0;
+}
+code,
+pre,
+.linedtextarea .lines div {
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+}
+pre,
+.linedtextarea .lines div {
+    font-size: 0.83rem;
+    overflow-x: auto;
+}
+/* Trim spaces to be more like plain text spaces in text like "Use <code>go get</code> to ...", but not in Markdown <pre> blocks. */
+code {
+    word-spacing: -0.5ch;
+}
+pre code {
+    word-spacing: 0 !important;
+}
+pre {
+    line-height: 1.4;
+    overflow-x: auto;
+}
+pre .comment {
+    color: #007d9c;
+}
+pre .highlight,
+pre .highlight-comment,
+pre .selection-highlight,
+pre .selection-highlight-comment {
+    background: #ffff00;
+}
+pre .selection,
+pre .selection-comment {
+    background: #ff9632;
+}
+pre .ln { /* line number */
+    color: #999;
+}
+pre ins {
+    /* For styling highlighted code in examples. */
+    color: rgb(0, 125, 156);
+    font-weight: bold;
+    text-decoration: none;
+}
+.ln {
+    user-select: none;
+
+    /* Ensure 8 characters in the document - which due to floating
+     * point rendering issues, might have a width of less than 1 each - are 8
+     * characters wide, so a tab in the 9th position indents properly. See
+     * https://github.com/webcompat/web-bugs/issues/17530#issuecomment-402675091
+     * for more information. */
+    display: inline-block;
+    width: 8ch;
+}
+html,
+.Site {
+    max-height: 100%;
+    min-height: 100vh;
+    scroll-padding-top: 4.6875rem;
+}
+a,
+a:link,
+a:visited {
+    color: #007d9c;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+.Playground-headerContainer {
+    text-align: center;
+}
+.Playground-input,
+.Playground-output {
+    padding: 0;
+    margin: 0;
+    font-family: Menlo, monospace;
+    font-size: 0.875rem;
+}
+.Playground-inputContainer {
+    border-top-left-radius: 0.3125rem;
+    border-top-right-radius: 0.3125rem;
+    overflow: hidden;
+}
+.PlayPage .Playground-inputContainer {
+    height: 30em;
+}
+.PlayPage .Playground-outputContainer {
+    height: 20em;
+}
+@media screen and (min-height: 50em) {
+    .PlayPage .Playground-inputContainer {
+        height: 40em;
+    }
+}
+
+@media only screen and (min-width: 57.7rem) {
+    .Header, .PlayPage {
+        padding: 0 1.5rem;
+    }
+}
+
+.PlayAbout {
+    font-size: 90%;
+}
+.Playground-input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    padding: 0.625rem 0.625rem 0 0.625rem;
+    min-height: 13rem;
+    resize: none;
+}
+.Playground-inputContainer #wrap {
+    height: 100%;
+}
+.Playground-outputContainer {
+    border-bottom-right-radius: 0.3125rem;
+    border-bottom-left-radius: 0.3125rem;
+    border-top: none !important;
+    padding: 0.625rem;
+    height: 5rem;
+    margin-bottom: 1rem;
+    overflow: auto;
+}
+.Playground-output {
+    padding: 0;
+    border-radius: 0;
+}
+.Playground-inputContainer,
+.Playground-input {
+    background: #ffffdd;
+}
+.Playground-runButton {
+    background-color: #ffffdd !important;
+}
+.Playground-outputContainer,
+.Playground-output {
+    background: #f7f9fa;
+}
+.Playground-inputContainer,
+.Playground-input,
+.Playground-outputContainer,
+.Playground-output {
+    color: #202224;
+}
+.Playground-inputContainer,
+.Playground-outputContainer {
+    border: 0.0625rem solid #c0c2c3;
+    resize: vertical;
+}
+.Playground-controls {
+    display: flex;
+    flex-wrap: wrap;
+}
+.Playground-buttons {
+    display: flex;
+    flex: 1;
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+.Playground-selectExample, .Playground-selectGoVersion, .Playground-shareURL {
+    background-color: white;
+    border-radius: 3px;
+    border: 0.0625rem solid #979797;
+    color: inherit;
+    font-family: inherit;
+    font-size: 16px;
+    /* Prevents automatic zoom on mobile devices */
+    height: 1.75rem;
+    margin: 0 0 0.5rem 0.5rem;
+}
+.Playground-secondaryButtons {
+    white-space: nowrap;
+}
+.Playground-secondaryButtons .Button:not(:first-child) {
+    margin-left: 0.4375rem;
+}
+@media only screen and (min-width: 27.8125rem) {
+    .Playground-outputContainer {
+        margin-bottom: 1.688rem;
+    }
+    .Playground-controls {
+        flex-wrap: nowrap;
+    }
+}
+h1.Playground-title {
+    font-size: 1.5rem;
+    line-height: 1.75rem;
+    display: inline;
+    margin: 0;
+}
+h2.Playground-about {
+    font-size: 1rem;
+    line-height: 2rem;
+    vertical-align: bottom;
+    height: 1.75rem;
+    display: inline;
+    margin: 0;
+    margin-left: 1rem;
+}
+.PlayPage .Playground-controls {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+.linedtextarea .lines {
+    float: left;
+    overflow: hidden;
+    text-align: right;
+}
+.linedtextarea .lines div {
+    padding-right: 5px;
+    color: lightgray;
+    overflow: hidden;
+}
+.linedtextarea .lineerror {
+    color: black !important;
+    background: #fdd;
+}
+.linedtextarea textarea {
+    height: 100%;
+    width: 100%;
+    float: right;
+    padding: 0;
+    font-size: 0.83rem;
+}
+.Button,
+.Button:link,
+.Button:visited {
+    align-items: center;
+    background-color: #f7f9fa;
+    border: none;
+    border-radius: 0.1875rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+    color: #007d9c;
+    cursor: pointer;
+    display: inline-flex;
+    font: bold 0.875rem Roboto, sans-serif;
+    height: 1.75rem;
+    padding: 0 0.625rem;
+    justify-content: center;
+    min-width: 4.063rem;
+    text-decoration: none;
+}
+.Button:active {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.Button--primary,
+.Button--primary:link,
+.Button--primary:visited {
+    border: 0.0625rem solid #00add8;
+}
+/* for pkg.tmpl */
+div.play {
+    padding: 0 1.25rem 2.5rem 1.25rem;
+}
+div.play pre,
+div.play textarea,
+div.play .lines {
+    padding: 0;
+    margin: 0;
+    font-family: Menlo, monospace;
+    font-size: 0.875rem;
+}
+div.play .input {
+    padding: 0.625rem;
+    margin-top: 0.625rem;
+
+    border-top-left-radius: 0.3125rem;
+    border-top-right-radius: 0.3125rem;
+
+    overflow: hidden;
+}
+div.play .input textarea {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+
+    overflow: hidden;
+}
+div#playground .input textarea {
+    overflow: auto;
+    resize: auto;
+}
+div.play .output {
+    border-top: none !important;
+
+    padding: 0.625rem;
+    max-height: 12.5rem;
+    overflow: auto;
+
+    border-bottom-right-radius: 0.3125rem;
+    border-bottom-left-radius: 0.3125rem;
+}
+div.play .output pre {
+    padding: 0;
+    border-radius: 0;
+}
+div.play .input,
+div.play .input textarea,
+div.play .output,
+div.play .output pre {
+    background: #f7f9fa;
+    color: #202224;
+}
+div.play .input,
+div.play .output {
+    border: 0.0625rem solid #c0c2c3;
+}
+div.play .buttons {
+    float: right;
+    padding: 0.625rem 0;
+    text-align: right;
+}
+div.play .buttons .Button {
+    margin-left: 0.3125rem;
+}
+.output .stderr {
+    color: #933;
+}
+.output .system {
+    color: #999;
+}
+.permalink {
+    display: none;
+}
+:hover > .permalink {
+    display: inline;
+}
+.Footer {
+    background-color: #253443;
+}
+.Container {
+    max-width: 75.75rem;
+}
+.Footer > .Container {
+    margin: auto;
+    padding: 2rem 1.5rem 2.625rem 1.5rem;
+}
+.Footer p {
+    text-align: center;
+    color: #f7f9fa;
+}
+.Footer a {
+    color: #6be2ff;
+}
