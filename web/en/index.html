@@ -14,10 +14,10 @@
         <div class="Playground-controls">
             <h1 class="Playground-title">The Lox Playground</h1>
             <div class="Playground-buttons">
-                <button id="run" title="Run this code [shift-enter]" class="Button Button--primary Playground-runButton">Run</button>
-                <button id="fmt" title="Format this code" class="Button">Format</button>
+                <button id="run" title="Run this code [ctrl-enter]" class="Button Button--primary js-playgroundRunEl">Run</button>
+                <button id="fmt" title="Format this code [alt-enter]" class="Button js-playgroundFmtEl">Format</button>
             </div>
-            <select aria-label="Code examples" class="Playground-selectExample">
+            <select aria-label="Code examples" class="Playground-selectExample js-playgroundToysEl">
                 <option value="hello.lox">Hello, World!</option>
                 <option value="life.lox">Conway's Game of Life</option>
                 <option value="fib.lox">Fibonacci Closure</option>
@@ -25,13 +25,13 @@
         </div>
         <div class="Playground-inputContainer">
             <div id="wrap">
-            <textarea id="code" name="code" class="Playground-input" autocorrect="off" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Try Lox">// You can edit this code!
+            <textarea id="code" name="code" class="Playground-input js-playgroundCodeEl" autocorrect="off" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Try Lox">// You can edit this code!
 // Click here and start typing.
-print "Hello, 世界"</textarea>
+print "Hello, 世界";</textarea>
             </div>
         </div>
         <div class="Playground-outputContainer">
-            <pre class="Playground-output"><noscript>Hello, 世界</noscript></pre>
+            <pre class="Playground-output js-playgroundOutputPreEl"><noscript>Hello, 世界</noscript></pre>
         </div>
         <div class="PlayAbout">
             <p><b>About the Playground</b></p>
@@ -55,6 +55,7 @@ print "Hello, 世界"</textarea>
                 is almost identical to jlox, except:
             </p>
             <ul>
+                <li>The lexer works on UTF-8 code point level instead of byte level.</li>
                 <li>The error message is not the same word by word, although the efforts making them semantically equal has been made.</li>
                 <li>A extra native function, <code>sleep(millisecond)</code>, is added to support playground examples.</li>
                 <li>BlueLox takes care of comments during lexing and parsing, so that <code>loxfmt</code> works.</li>
@@ -80,9 +81,11 @@ print "Hello, 世界"</textarea>
             The Lox Playground borrows lots of ideas, code and styles from <a href="https://go.dev/play/" rel="noopener" target="_blank">Go Playground</a>(<a
                 href="/licenses/go.txt">license</a>).
         </p>
-        <p>© 2022 LI Zhennan</p>
+        <p class="author">© 2022 LI Zhennan</p>
     </div>
     <script src="/js/jquery.min.js"></script>
+    <script src="/js/wasm_exec.js"></script>
+    <script src="/js/playground.js"></script>
 </footer>
 </body>
 </html>

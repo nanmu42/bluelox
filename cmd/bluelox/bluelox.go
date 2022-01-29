@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/nanmu42/bluelox/interpreter"
 
@@ -28,9 +31,12 @@ func main() {
 		return
 	}
 
-	runner := lox.NewLox()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
+	defer stop()
+
+	runner := lox.NewLox(os.Stdout)
 	if len(os.Args) == 1 {
-		err = runner.RunPrompt()
+		err = runner.RunPrompt(ctx)
 		if err != nil {
 			err = fmt.Errorf("running prompt: %w", err)
 			return
@@ -39,7 +45,7 @@ func main() {
 		return
 	}
 
-	err = runner.RunFile(os.Args[1])
+	err = runner.RunFile(ctx, os.Args[1])
 	if err != nil {
 		err = fmt.Errorf("running script file: %w", err)
 

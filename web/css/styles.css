@@ -376,3 +376,6 @@ div.play .buttons .Button {
 .Footer a {
     color: #6be2ff;
 }
+.Footer .author {
+    margin-top: 2rem;
+}

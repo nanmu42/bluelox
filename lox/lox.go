@@ -2,7 +2,9 @@ package lox
 
 import (
 	"bufio"
+	"context"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/nanmu42/bluelox/resolver"
@@ -18,20 +20,20 @@ type Lox struct {
 	interpreter *interpreter.Interpreter
 }
 
-func NewLox() *Lox {
+func NewLox(stdout io.Writer) *Lox {
 	return &Lox{
-		interpreter: interpreter.NewInterpreter(),
+		interpreter: interpreter.NewInterpreter(stdout),
 	}
 }
 
-func (l *Lox) RunFile(path string) (err error) {
+func (l *Lox) RunFile(ctx context.Context, path string) (err error) {
 	script, err := os.ReadFile(path)
 	if err != nil {
 		err = fmt.Errorf("reading script file: %w", err)
 		return
 	}
 
-	err = l.run(script)
+	err = l.Run(ctx, script)
 	if err != nil {
 		err = fmt.Errorf("running script: %w", err)
 		return
@@ -40,7 +42,7 @@ func (l *Lox) RunFile(path string) (err error) {
 	return
 }
 
-func (l *Lox) RunPrompt() (err error) {
+func (l *Lox) RunPrompt(ctx context.Context) (err error) {
 	lineReader := bufio.NewScanner(os.Stdin)
 
 	fmt.Printf("> ")
@@ -50,7 +52,7 @@ func (l *Lox) RunPrompt() (err error) {
 			break
 		}
 
-		err = l.run(line)
+		err = l.Run(ctx, line)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -67,10 +69,11 @@ func (l *Lox) RunPrompt() (err error) {
 	return
 }
 
-// run provided script.
+// Run provided script.
+// context is used to early stop interpretation on statement level.
 //
 // The provided script is read only, should not be modified.
-func (l *Lox) run(script []byte) (err error) {
+func (l *Lox) Run(ctx context.Context, script []byte) (err error) {
 	s := scanner.NewScanner(script)
 	tokens, err := s.ScanTokens()
 	if err != nil {
@@ -91,7 +94,7 @@ func (l *Lox) run(script []byte) (err error) {
 		return
 	}
 
-	err = l.interpreter.Interpret(stmts)
+	err = l.interpreter.Interpret(ctx, stmts)
 	if err != nil {
 		return
 	}

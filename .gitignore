@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+*.wasm
 /cmd/bluelox/bluelox
 
 # Test binary, built with `go test -c`

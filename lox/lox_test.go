@@ -1,6 +1,8 @@
 package lox
 
 import (
+	"context"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -12,8 +14,8 @@ print "hi" or 2; // "hi".
 print nil or "yes"; // "yes".
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -36,8 +38,8 @@ var a = "global";
 }
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -63,8 +65,8 @@ counter(); // "2".
 counter(); // "3".
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -86,8 +88,8 @@ for (var i = 0; i < 20; i = i + 1) {
 }
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -129,8 +131,8 @@ print "me again";
 }
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -150,8 +152,8 @@ for (var i = 1; i <= 100; i = i + 1) {
 print sum;
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -172,8 +174,8 @@ while (i <= 100) {
 print sum;
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -199,8 +201,8 @@ class BostonCream < Doughnut {
 BostonCream().cook();
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -232,8 +234,8 @@ class C < B {}
 C().test();
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -297,8 +299,8 @@ var foo = Foo();
 print foo.init();
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	if err != nil {
 		panic(err)
 	}
@@ -321,8 +323,8 @@ var a = "outer";
 }
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	require.Error(t, err)
 }
 
@@ -336,8 +338,8 @@ class Eclair {
 }
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	require.Error(t, err)
 }
 
@@ -346,8 +348,8 @@ func Test_Lox_no_invalid_super2(t *testing.T) {
 super.notEvenInAClass();
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	require.Error(t, err)
 }
 
@@ -360,8 +362,8 @@ class Foo {
 }
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	require.Error(t, err)
 }
 
@@ -372,8 +374,8 @@ fun notAMethod() {
 }
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	require.Error(t, err)
 }
 
@@ -382,8 +384,8 @@ func Test_Lox_no_top_level_return(t *testing.T) {
 return "surprise!";
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	require.Error(t, err)
 }
 
@@ -395,7 +397,7 @@ fun bad() {
 }
 `
 
-	l := NewLox()
-	err := l.run([]byte(code))
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
 	require.Error(t, err)
 }

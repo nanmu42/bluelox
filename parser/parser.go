@@ -365,7 +365,8 @@ func (p *Parser) consume(wantType token.Type) (consumed *token.Token, err error)
 		return
 	}
 
-	err = fmt.Errorf("want token type %s, got %s", wantType, p.peek().Type)
+	peek := p.peek()
+	err = fmt.Errorf("want token type %s, got %s at line %d", wantType, peek.Type, peek.Line)
 	return
 }
 

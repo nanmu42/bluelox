@@ -1,10 +1,13 @@
 package interpreter
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"strconv"
+	"sync"
 
 	"github.com/nanmu42/bluelox/ast"
 	"github.com/nanmu42/bluelox/token"
@@ -18,19 +21,31 @@ type Interpreter struct {
 	globals     *Environment
 	// keys are all pointers, so it's fine if we stick with one interpreter.
 	locals map[ast.Expression]int
+
+	// protect stdout
+	stdoutMu sync.RWMutex
+	stdout   io.Writer
 }
 
-func NewInterpreter() *Interpreter {
+func NewInterpreter(stdout io.Writer) *Interpreter {
 	globals := NewGlobalEnvironment()
 
 	return &Interpreter{
-		globals:     globals,
 		environment: globals,
+		globals:     globals,
 		locals:      make(map[ast.Expression]int),
+		stdoutMu:    sync.RWMutex{},
+		stdout:      stdout,
 	}
 }
 
-func (i *Interpreter) Interpret(stmts []ast.Statement) (err error) {
+func (i *Interpreter) ChangeStdoutTo(w io.Writer) {
+	i.stdoutMu.Lock()
+	i.stdout = w
+	i.stdoutMu.Unlock()
+}
+
+func (i *Interpreter) Interpret(ctx context.Context, stmts []ast.Statement) (err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = &RuntimeError{
@@ -39,7 +54,14 @@ func (i *Interpreter) Interpret(stmts []ast.Statement) (err error) {
 		}
 	}()
 
+	done := ctx.Done()
 	for _, stmt := range stmts {
+		select {
+		case <-done:
+			err = ctx.Err()
+		default:
+			// relax
+		}
 		err = i.execute(stmt)
 		if err != nil {
 			return
@@ -273,7 +295,13 @@ func (i *Interpreter) VisitPrintStmt(v *ast.PrintStmt) (err error) {
 		return
 	}
 
-	fmt.Println(i.stringify(result))
+	i.stdoutMu.RLock()
+	defer i.stdoutMu.RUnlock()
+	_, err = fmt.Fprintln(i.stdout, i.stringify(result))
+	if err != nil {
+		err = fmt.Errorf("printing to io.Writer: %w", err)
+		return
+	}
 	return
 }
 
