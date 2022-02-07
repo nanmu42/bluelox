@@ -46,7 +46,7 @@ func (r *Runner) Run(this js.Value, args []js.Value) (err error) {
 		}
 	}()
 	if r.running {
-		err = errors.New("stopping running program, click Run to try again")
+		err = errors.New("stopping running program, wait for 'Program exited' and click Run to try again. Press F5 to refresh if it takes too long")
 		return
 	}
 	if r.formatting {
