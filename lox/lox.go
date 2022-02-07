@@ -101,3 +101,7 @@ func (l *Lox) Run(ctx context.Context, script []byte) (err error) {
 
 	return
 }
+
+func (l *Lox) ChangeStdoutTo(writer io.Writer) {
+	l.interpreter.ChangeStdoutTo(writer)
+}

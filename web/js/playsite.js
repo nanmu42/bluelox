@@ -49,7 +49,5 @@ window.addEventListener('DOMContentLoaded', async () => {
         } catch (e) {
             console.log('loading Bluelox wasm:', e)
         }
-
-        console.log('Bluelox wasm is loaded 👋')
     }
 })

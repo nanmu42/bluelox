@@ -88,3 +88,24 @@ func (n nativeFuncClock) Call(interpreter *Interpreter, arguments []interface{})
 func (n nativeFuncClock) String() string {
 	return nativeFuncStringForm
 }
+
+type nativeFuncSleep struct{}
+
+func (n nativeFuncSleep) Arity() int {
+	return 1
+}
+
+func (n nativeFuncSleep) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}, err error) {
+	ms, ok := arguments[0].(float64)
+	if !ok {
+		err = fmt.Errorf("sleep require milliseconds in float, not %T", arguments[0])
+		return
+	}
+
+	time.Sleep(time.Duration(ms) * time.Millisecond)
+	return nil, nil
+}
+
+func (n nativeFuncSleep) String() string {
+	return nativeFuncStringForm
+}

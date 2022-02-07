@@ -191,11 +191,21 @@ function PlaygroundOutput(el) {
                 .addClass('error')
                 .text(error);
         }
+
+        async function sleep(ms) {
+            return new Promise((resolve => {
+                setTimeout(()=>{
+                    resolve()
+                }, ms)
+            }))
+        }
+
         async function runOnly() {
             try {
                 lineClear()
                 await window.loxstop()
-                output.removeClass('error').text('Running...');
+                output.removeClass('error').text('Running...')
+                await sleep(1) // wait for DOM update
                 window.writeOutput = highlightOutput(writeOutput)
                 await window.loxrun(body())
             } catch (e) {
@@ -221,10 +231,6 @@ function PlaygroundOutput(el) {
 
         if (opts.toysEl !== null) {
             $(opts.toysEl).bind('change', function() {
-                if (toyDisable) {
-                    toyDisable = false;
-                    return;
-                }
                 var toy = $(this).val();
                 $.ajax('/toy/' + toy, {
                     processData: false,

@@ -1,0 +1,34 @@
+fun progress(n, max) {
+    var done = "";
+    var remain = "";
+    var remainProgress = n;
+
+    if (n < max) {
+        remain = ">";
+        remainProgress = n+1;
+    }
+
+    for (var i = 0; i < n; i = i+1) {
+        done = done + "=";
+    }
+
+    for (var i = remainProgress; i < max; i = i+1) {
+        remain = remain + " ";
+    }
+
+    var bar = "[" + done + remain + "]";
+    if (n >= max) {
+        bar = bar + " Done!";
+    }
+
+    return bar;
+}
+
+// Clear the screen by printing \f, the form feed symbol.
+
+var col = 30;
+
+for (var i = 0; i <= col; i = i+1) {
+    print "\f" + progress(i, col);
+    sleep(50);
+}

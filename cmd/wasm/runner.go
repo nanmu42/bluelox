@@ -9,7 +9,6 @@ import (
 	"sync"
 	"syscall/js"
 
-	"github.com/nanmu42/bluelox/interpreter"
 	"github.com/nanmu42/bluelox/lox"
 )
 
@@ -20,9 +19,9 @@ type Runner struct {
 	mu sync.Mutex
 
 	// states
-	running     bool
-	cancelRun   context.CancelFunc
-	interpreter *interpreter.Interpreter
+	running   bool
+	cancelRun context.CancelFunc
+	lox       *lox.Lox
 
 	// TODO: implement us
 	formatting bool
@@ -47,20 +46,22 @@ func (r *Runner) Run(this js.Value, args []js.Value) (err error) {
 		}
 	}()
 	if r.running {
-		err = errors.New("already running, must stop at first")
+		err = errors.New("stopping running program, click Run to try again")
 		return
 	}
 	if r.formatting {
-		err = errors.New("already formatting, must stop at first")
+		err = errors.New("stopping formatting program, please try again")
 		return
 	}
 
 	stdout := newOutputWriter()
-	runner := lox.NewLox(stdout)
+	r.lox = lox.NewLox(stdout)
 	ctx, cancel := context.WithCancel(context.Background())
 	r.cancelRun = cancel
 	r.running = true
 	defer func() {
+		_ = stdout.Close()
+
 		r.mu.Lock()
 		r.running = false
 		r.mu.Unlock()
@@ -70,14 +71,14 @@ func (r *Runner) Run(this js.Value, args []js.Value) (err error) {
 	r.mu.Unlock()
 	lockReleased = true
 
-	err = runner.Run(ctx, []byte(script.String()))
+	err = r.lox.Run(ctx, []byte(script.String()))
 	if errors.Is(err, context.Canceled) {
 		// user cancel is ok
 		err = nil
 		return
 	}
 	if err != nil {
-		return fmt.Errorf("loxrun: %s", err.Error())
+		return fmt.Errorf("loxrun: %w", err)
 	}
 
 	return nil
@@ -88,7 +89,7 @@ func (r *Runner) Stop(this js.Value, args []js.Value) (err error) {
 	defer r.mu.Unlock()
 
 	if r.running {
-		r.interpreter.ChangeStdoutTo(noopWriter)
+		r.lox.ChangeStdoutTo(noopWriter)
 		r.cancelRun()
 	}
 	if r.formatting {
@@ -115,18 +116,22 @@ func newOutputWriter() *OutputWriter {
 	}
 }
 
-// Write message to JS writer, schema:
-// {
-//     Kind: 'string', // 'start', 'stdout', 'stderr', 'end'
-//     Body: 'string'  // content of write or end status message
-// }
-func (o *OutputWriter) Write(p []byte) (n int, err error) {
+func (o *OutputWriter) initWrite() {
 	if !o.written {
 		o.output.Invoke(map[string]interface{}{
 			"Kind": "start",
 		})
 		o.written = true
 	}
+}
+
+// Write message to JS writer, schema:
+// {
+//     Kind: 'string', // 'start', 'stdout', 'stderr', 'end'
+//     Body: 'string'  // content of write or end status message
+// }
+func (o *OutputWriter) Write(p []byte) (n int, err error) {
+	o.initWrite()
 
 	o.output.Invoke(map[string]interface{}{
 		"Kind": "stdout",
@@ -138,8 +143,10 @@ func (o *OutputWriter) Write(p []byte) (n int, err error) {
 
 // Close see write for schema
 func (o *OutputWriter) Close() error {
+	o.initWrite()
+
 	o.output.Invoke(map[string]interface{}{
-		"Kind": "stdout",
+		"Kind": "end",
 		"Body": "",
 	})
 
