@@ -151,7 +151,7 @@ func (i *Interpreter) VisitBinaryExpr(v *ast.BinaryExpr) (result interface{}, er
 		}
 
 		err = &RuntimeError{
-			Reason: fmt.Sprintf("operands must be both numbers or strings, got %q(%T) and %q(%T)", left, left, right, right),
+			Reason: fmt.Sprintf("operands must be both numbers or strings, got %v(%T) and %v(%T)", left, left, right, right),
 			Token:  v.Operator,
 		}
 		return
@@ -479,11 +479,17 @@ func (i *Interpreter) VisitCallExpr(v *ast.CallExpr) (result interface{}, err er
 		return
 	}
 	if want, got := function.Arity(), len(arguments); want != got {
-		err = fmt.Errorf("expected %d arguments but got %d", want, got)
+		err = fmt.Errorf("function expected %d arguments but got %d, at line %d", want, got, v.Paren.Line)
 		return
 	}
 
-	return function.Call(i, arguments)
+	result, err = function.Call(i, arguments)
+	if err != nil {
+		err = fmt.Errorf("calling function at line %d: %w", v.Paren.Line, err)
+		return
+	}
+
+	return
 }
 
 func (i *Interpreter) VisitGetExpr(v *ast.GetExpr) (result interface{}, err error) {

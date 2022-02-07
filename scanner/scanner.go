@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"unicode/utf8"
 
 	"github.com/nanmu42/bluelox/token"
@@ -201,10 +202,52 @@ func (s *Scanner) match(expected rune) bool {
 	return true
 }
 
+// string not like original Lox, we handle escaped char as well,
+// which makes Lox Playground more interesting.
+//
+// \a   U+0007 alert or bell
+// \b   U+0008 backspace
+// \f   U+000C form feed
+// \n   U+000A line feed or newline
+// \r   U+000D carriage return
+// \t   U+0009 horizontal tab
+// \v   U+000B vertical tab
+// \\   U+005C backslash
+// \"   U+0022 double quote
 func (s *Scanner) string() (err error) {
+	var b strings.Builder
+
 	for s.peek() != '"' && !s.isAtEnd() {
 		if s.peek() == '\n' {
 			s.line++
+		}
+		c := s.advance()
+		if c != '\\' {
+			b.WriteRune(c)
+			continue
+		}
+		switch s.peek() {
+		case 'a':
+			b.WriteRune('\a')
+		case 'b':
+			b.WriteRune('\b')
+		case 'f':
+			b.WriteRune('\f')
+		case 'n':
+			b.WriteRune('\n')
+		case 'r':
+			b.WriteRune('\r')
+		case 't':
+			b.WriteRune('\t')
+		case 'v':
+			b.WriteRune('\v')
+		case '\\':
+			b.WriteRune('\\')
+		case '"':
+			b.WriteRune('"')
+		default:
+			err = fmt.Errorf("unexpected escaped char '\\%s'", string(s.peek()))
+			return
 		}
 		s.advance()
 	}
@@ -217,9 +260,7 @@ func (s *Scanner) string() (err error) {
 	// skip the closing "
 	s.advance()
 
-	// trim the surrounding quotes
-	value := string(s.source[s.start+1 : s.current-1])
-	s.addToken(token.String, value)
+	s.addToken(token.String, b.String())
 
 	return
 }

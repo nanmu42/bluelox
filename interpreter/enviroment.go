@@ -19,6 +19,7 @@ func NewGlobalEnvironment() (env *Environment) {
 	// native functions
 	env.Define("clock", nativeFuncClock{})
 	env.Define("sleep", nativeFuncSleep{})
+	env.Define("randN", nativeFuncRandN{})
 
 	return
 }

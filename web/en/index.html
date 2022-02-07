@@ -21,8 +21,9 @@
                 <option value="hello.lox">Hello, World!</option>
                 <option value="life.lox">Conway's Game of Life</option>
                 <option value="fib.lox">Fibonacci Closure</option>
-                <option value="pi.lox">Leibniz formula for π</option>
+                <option value="pi.lox">Leibniz Formula for π</option>
                 <option value="clear.lox">Clear Screen</option>
+                <option value="sleep.lox">Sleep</option>
             </select>
         </div>
         <div class="Playground-inputContainer">
@@ -57,9 +58,10 @@ print "Hello, 世界";</textarea>
                 is almost identical to jlox, except:
             </p>
             <ul>
-                <li>The lexer works on UTF-8 code point level instead of byte level.</li>
-                <li>The error message is not the same word by word, although the efforts making them semantically equal has been made.</li>
-                <li>A extra native function, <code>sleep(millisecond)</code>, is added to support playground examples.</li>
+                <li>The lexer works on UTF-8 code point level instead of byte level, and it handles following escaped char: <code>\a</code>, <code>\b</code>, <code>\f</code>, <code>\n</code>, <code>\r</code>, <code>\t</code>, <code>\v</code>, <code>\\</code> and <code>\"</code></li>
+                <li>The error message is not the same word for word, although the efforts making them semantically equal has been made.</li>
+                <li>Two extra native function, <code>sleep(millisecond)</code> and <code>randN(n)</code>, are added to support playground examples.</li>
+                <li>Modulo operation <code>%</code> is supported, where the two floats are truncated.</li>
                 <li>BlueLox takes care of comments during lexing and parsing, so that <code>loxfmt</code> works.</li>
             </ul>
             <p>

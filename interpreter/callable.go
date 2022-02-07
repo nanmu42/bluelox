@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/nanmu42/bluelox/ast"
@@ -98,7 +99,7 @@ func (n nativeFuncSleep) Arity() int {
 func (n nativeFuncSleep) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}, err error) {
 	ms, ok := arguments[0].(float64)
 	if !ok {
-		err = fmt.Errorf("sleep require milliseconds in float, not %T", arguments[0])
+		err = fmt.Errorf("sleep() requires milliseconds in float, not %T", arguments[0])
 		return
 	}
 
@@ -107,5 +108,32 @@ func (n nativeFuncSleep) Call(interpreter *Interpreter, arguments []interface{})
 }
 
 func (n nativeFuncSleep) String() string {
+	return nativeFuncStringForm
+}
+
+type nativeFuncRandN struct{}
+
+func (n nativeFuncRandN) Arity() int {
+	return 1
+}
+
+// Call returns, as an int,
+// a non-negative pseudo-random number in the half-open interval [0,n) from the default Source.
+// It returns error if n <= 0.
+func (n nativeFuncRandN) Call(interpreter *Interpreter, arguments []interface{}) (result interface{}, err error) {
+	max, ok := arguments[0].(float64)
+	if !ok {
+		err = fmt.Errorf("randN() requires parameter in float, not %T", arguments[0])
+		return
+	}
+	if max <= 0 {
+		err = fmt.Errorf("randN()'s parameter must be positive, got %f", max)
+		return
+	}
+
+	return float64(rand.Intn(int(max))), nil
+}
+
+func (n nativeFuncRandN) String() string {
 	return nativeFuncStringForm
 }
