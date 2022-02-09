@@ -16,7 +16,8 @@ https://lox.nanmu.me/
 
 Works in Progress:
 
-While the interpreter itself is ready, Lox Playground
+While the interpreter itself is ready, Lox Playground is still under development,
+so there's still lots of sharp corners.
 
 ## Acknowledgement
 

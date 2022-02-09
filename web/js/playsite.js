@@ -1,6 +1,15 @@
 window.addEventListener('DOMContentLoaded', async () => {
     initEditor()
-    await loadBlueLox()
+
+    let output = $('.js-playgroundOutputPreEl')
+    output.text('Loading BlueLox WASM...')
+    try {
+        await loadBlueLox()
+        output.empty()
+    } catch (e) {
+        output.text('Failed to load BlueLox WASM: ' + e)
+    }
+
 
     window.playground && window.playground({
         'codeEl': '.js-playgroundCodeEl',
@@ -43,11 +52,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             })
         }
 
-        try {
-            await loadWasm('/js/bluelox.wasm')
-
-        } catch (e) {
-            console.log('loading Bluelox wasm:', e)
-        }
+        await loadWasm('/js/bluelox.wasm')
     }
 })
