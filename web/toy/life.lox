@@ -1,0 +1,57 @@
+// An implementation of Conway's Game of Life.
+//
+// Since Lox hasn't got the concept of array,
+// let's use a linklist-like structure.
+
+// Cell in fields
+class Cell {
+    init() {
+        // on or off
+        this.s = false;
+
+        // which field does this cell belongs to
+        this.field = null;
+
+        // neighbors, Cell
+        this.up = null;
+        this.right = null;
+        this.down = null;
+        this.left = null;
+    }
+
+    // isAlive reports whether the cell is currently alive.
+    isAlive() {
+        return this.s;
+    }
+
+    // next returns the state of the cell at the next time step.
+    next() {
+        var alive = 0;
+        if (this.up.isAlive()) {
+            alive = alive + 1;
+        }
+        if (this.right.isAlive()) {
+            alive = alive + 1;
+        }
+        if (this.down.isAlive()) {
+            alive = alive + 1;
+        }
+        if (this.left.isAlive()) {
+            alive = alive + 1;
+        }
+
+        // Return next state according to the game rules:
+        //   exactly 3 neighbors: on,
+        //   exactly 2 neighbors: maintain current state,
+        //   otherwise: off.
+        return alive == 3 or alive == 2 and this.isAlive();
+    }
+}
+
+class Field {
+    // weight and height
+    init(w, h) {
+        this.w = w;
+        this.h = h;
+    }
+}
