@@ -30,4 +30,4 @@ The Lox Playground borrows lots of ideas, code and styles from [Go Playground](h
 
 Copyright © 2022 LI Zhennan
 
-Released under the MIT License
+Released under Apache License 2.0.
