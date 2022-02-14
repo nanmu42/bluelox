@@ -8,6 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/nanmu42/bluelox/version"
+
 	"github.com/nanmu42/bluelox/interpreter"
 
 	"github.com/nanmu42/bluelox/lox"
@@ -24,6 +26,8 @@ func main() {
 			os.Exit(exitCode)
 		}
 	}()
+
+	version.SetSubName("cli")
 
 	if len(os.Args) > 2 {
 		fmt.Println("Usage: bluelox [script]")

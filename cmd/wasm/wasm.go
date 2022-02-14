@@ -4,11 +4,15 @@ package main
 
 import (
 	"syscall/js"
+
+	"github.com/nanmu42/bluelox/version"
 )
 
 var Promise = js.Global().Get("Promise")
 
 func main() {
+	version.SetSubName("wasm")
+
 	runner := &Runner{}
 
 	js.Global().Set("loxrun", asyncFuncOf(runner.Run))
