@@ -17,6 +17,7 @@ var _ ast.ExprVisitor = (*Interpreter)(nil)
 var _ ast.StmtVisitor = (*Interpreter)(nil)
 
 type Interpreter struct {
+	ctx         context.Context
 	environment *Environment
 	globals     *Environment
 	// keys are all pointers, so it's fine if we stick with one interpreter.
@@ -46,6 +47,8 @@ func (i *Interpreter) ChangeStdoutTo(w io.Writer) {
 }
 
 func (i *Interpreter) Interpret(ctx context.Context, stmts []ast.Statement) (err error) {
+	i.ctx = ctx
+
 	defer func() {
 		if r := recover(); r != nil {
 			err = &RuntimeError{
@@ -391,8 +394,18 @@ func (i *Interpreter) VisitIfStmt(v *ast.IfStmt) (err error) {
 }
 
 func (i *Interpreter) VisitWhileStmt(v *ast.WhileStmt) (err error) {
+	done := i.ctx.Done()
+
 	var evalCondition interface{}
 	for {
+		select {
+		case <-done:
+			err = i.ctx.Err()
+			return
+		default:
+			// relax
+		}
+
 		evalCondition, err = i.evaluate(v.Condition)
 		if err != nil {
 			return
