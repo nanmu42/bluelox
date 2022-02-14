@@ -232,7 +232,7 @@ func (r *Resolver) VisitClassStmt(v *ast.ClassStmt) (err error) {
 		r.currentClass = ClassTypeSubclass
 
 		if v.SuperClass.Name.Lexeme == v.Name.Lexeme {
-			err = errors.New("a class can't inherit from itself")
+			err = fmt.Errorf("the class %q can't inherit from itself, at line %d", v.Name.Lexeme, v.Name.Line)
 			return
 		}
 
@@ -314,7 +314,7 @@ func (r *Resolver) declare(name *token.Token) (err error) {
 
 	scope := r.scopes.Peek()
 	if _, ok := scope[name.Lexeme]; ok {
-		err = fmt.Errorf("variable %q already existed in this scope", name.Lexeme)
+		err = fmt.Errorf("variable %q at line %d already existed in this scope", name.Lexeme, name.Line)
 		return
 	}
 
@@ -334,6 +334,7 @@ func (r *Resolver) resolveLocal(v ast.Expression, name *token.Token) error {
 	for i := len(r.scopes) - 1; i >= 0; i-- {
 		if _, ok := r.scopes[i][name.Lexeme]; ok {
 			r.interpreter.Resolve(v, len(r.scopes)-1-i)
+			return nil
 		}
 	}
 

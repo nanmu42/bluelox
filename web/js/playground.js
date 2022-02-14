@@ -84,6 +84,8 @@ function PlaygroundOutput(el) {
         var span = document.createElement('span');
         span.className = cl;
         span.innerHTML = m;
+
+        console.log("lox [" + cl + "]", m)
         el.appendChild(span);
 
         if (needScroll) el.scrollTop = el.scrollHeight - el.offsetHeight;
@@ -172,9 +174,6 @@ function PlaygroundOutput(el) {
             }
             return true;
         }
-        code.unbind('keydown').bind('keydown', keyHandler);
-        var output = $(opts.outputPreEl).empty();
-        window.writeOutput = PlaygroundOutput(output)
 
         function body() {
             return $(opts.codeEl).val();
@@ -182,6 +181,10 @@ function PlaygroundOutput(el) {
         function setBody(text) {
             $(opts.codeEl).val(text);
         }
+
+        code.unbind('keydown').bind('keydown', keyHandler);
+        var output = $(opts.outputPreEl).empty();
+        window.writeOutput = PlaygroundOutput(output)
 
         function setError(error) {
             lineClear();
@@ -206,11 +209,14 @@ function PlaygroundOutput(el) {
                 await window.loxstop()
                 output.removeClass('error').text('Running...')
                 await sleep(1) // wait for DOM update
-                window.writeOutput = highlightOutput(writeOutput)
+                window.writeOutput = highlightOutput(window.writeOutput)
                 await window.loxrun(body())
             } catch (e) {
                 setError(e)
+                window.writeOutput = PlaygroundOutput(output)
             }
+
+            window.writeOutput = PlaygroundOutput(output)
         }
 
         function fmtAnd(run) {

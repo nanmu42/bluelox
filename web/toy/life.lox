@@ -5,23 +5,28 @@
 
 // Cell in fields
 class Cell {
-    init() {
+    init(field) {
         // on or off
         this.s = false;
 
         // which field does this cell belongs to
-        this.field = null;
+        this.field = field;
 
         // neighbors, Cell
-        this.up = null;
-        this.right = null;
-        this.down = null;
-        this.left = null;
+        this.up = nil;
+        this.right = nil;
+        this.down = nil;
+        this.left = nil;
     }
 
     // isAlive reports whether the cell is currently alive.
     isAlive() {
         return this.s;
+    }
+
+    // set updates cell's status
+    set(isAlive) {
+        this.s = isAlive;
     }
 
     // next returns the state of the cell at the next time step.
@@ -30,13 +35,25 @@ class Cell {
         if (this.up.isAlive()) {
             alive = alive + 1;
         }
+        if (this.up.right.isAlive()) {
+            alive = alive + 1;
+        }
         if (this.right.isAlive()) {
+            alive = alive + 1;
+        }
+        if (this.right.down.isAlive()) {
             alive = alive + 1;
         }
         if (this.down.isAlive()) {
             alive = alive + 1;
         }
+        if (this.down.left.isAlive()) {
+            alive = alive + 1;
+        }
         if (this.left.isAlive()) {
+            alive = alive + 1;
+        }
+        if (this.left.up.isAlive()) {
             alive = alive + 1;
         }
 
@@ -48,10 +65,234 @@ class Cell {
     }
 }
 
+fun randomBool() {
+    return randN(4) < 1;
+}
+
 class Field {
+    // string returns the field as a string.
+    string() {
+        var s = "";
+        var head = this.root;
+        var cell = head;
+
+        if (cell.isAlive()) {
+            s = s+"*";
+        } else {
+            s = s+" ";
+        }
+        for (var col = 1; col < this.w; col = col+1) {
+            cell = cell.right;
+            if (cell.isAlive()) {
+                s = s+"*";
+            } else {
+                s = s+" ";
+            }
+        }
+
+        for (var row = 1; row < this.h; row = row+1) {
+            s = s+"\n";
+            head = head.down;
+            cell = head;
+            if (cell.isAlive()) {
+                s = s+"*";
+            } else {
+                s = s+" ";
+            }
+
+            for (var col = 1; col < this.w; col = col+1) {
+                cell = cell.right;
+                if (cell.isAlive()) {
+                    s = s+"*";
+                } else {
+                    s = s+" ";
+                }
+            }
+        }
+
+        return s;
+    }
+
     // weight and height
     init(w, h) {
         this.w = w;
         this.h = h;
+
+        // upper-left cell
+        this.root = Cell(this);
+
+        // weaving cells
+        // Phase 1:
+        // O ↔ O ↔ O
+        // ↕
+        // O ↔ O ↔ O
+        // ↕
+        // O ↔ O ↔ O
+        var head = this.root;
+        var tail = head;
+        for (var col = 1; col < this.w; col = col+1) {
+            var newTail = Cell(this);
+            newTail.left = tail;
+            tail.right = newTail;
+            tail = newTail;
+        }
+
+        for (var row = 1; row < this.h; row = row+1) {
+            var newHead = Cell(this);
+            newHead.up = head;
+            head.down = newHead;
+            head = newHead;
+
+            tail = head;
+            for (var col = 1; col < this.w; col = col+1) {
+                var newTail = Cell(this);
+                newTail.left = tail;
+                tail.right = newTail;
+                tail = newTail;
+            }
+        }
+
+        // Phase 2:
+        // O - O - O
+        // |   ↕   ↕
+        // O - O - O
+        // |   ↕   ↕
+        // O - O - O
+        var rowEnds = this.root;
+        for (var row = 1; row < this.h; row = row+1) {
+            var head = rowEnds;
+            rowEnds = rowEnds.down;
+            var tail = rowEnds;
+            for (var col = 1; col < this.w; col = col+1) {
+                head = head.right;
+                tail = tail.right;
+                head.down = tail;
+                tail.up = head;
+            }
+        }
+
+        // Phase 3:
+        // ↕   ↕   ↕
+        // O - O - O
+        // |   |   |
+        // O - O - O
+        // |   |   |
+        // O - O - O
+        // ↕   ↕   ↕
+        head = this.root;
+        tail = this.root;
+        for (var row = 1; row < this.h; row = row+1) {
+            tail = tail.down;
+        }
+        head.up = tail;
+        tail.down = head;
+        for (var col = 1; col < this.w; col = col+1) {
+            head = head.right;
+            tail = tail.right;
+            head.up = tail;
+            tail.down = head;
+        }
+
+        // Phase 4:
+        //   |   |   |
+        // ↔ O - O - O ↔
+        //   |   |   |
+        // ↔ O - O - O ↔
+        //   |   |   |
+        // ↔ O - O - O ↔
+        //   |   |   |
+        head = this.root;
+        tail = this.root;
+        for (var col = 1; col < this.w; col = col+1) {
+            tail = tail.right;
+        }
+        head.left = tail;
+        tail.right = head;
+        for (var row = 1; row < this.h; row = row+1) {
+            head = head.down;
+            tail = tail.down;
+            head.left = tail;
+            tail.right = head;
+        }
     }
+
+    randomize() {
+        var head = this.root;
+        var cell = head;
+        cell.set(randomBool());
+        for (var col = 1; col < this.w; col = col+1) {
+            cell = cell.right;
+            cell.set(randomBool());
+        }
+
+        for (var row = 1; row < this.h; row = row+1) {
+            head = head.down;
+            var cell = head;
+            cell.set(randomBool());
+            for (var col = 1; col < this.w; col = col+1) {
+                        cell = cell.right;
+                        cell.set(randomBool());
+            }
+        }
+    }
+}
+
+class Life {
+    // weight and height
+    init(w, h) {
+        this.w = w;
+        this.h = h;
+
+        this.a = Field(w, h);
+        this.a.randomize();
+
+        this.b = Field(w, h);
+    }
+
+    // Step advances the game by one instant, recomputing and updating all cells.
+    step() {
+        var aHead = this.a.root;
+        var bHead = this.b.root;
+        var aCell = aHead;
+        var bCell = bHead;
+        bCell.set(aCell.next());
+        for (var col = 1; col < this.w; col = col+1) {
+            aCell = aCell.right;
+            bCell = bCell.right;
+            bCell.set(aCell.next());
+        }
+
+        for (var row = 1; row < this.h; row = row+1) {
+            aHead = aHead.down;
+            bHead = bHead.down;
+            aCell = aHead;
+            bCell = bHead;
+            bCell.set(aCell.next());
+            for (var col = 1; col < this.w; col = col+1) {
+                aCell = aCell.right;
+                bCell = bCell.right;
+                bCell.set(aCell.next());
+            }
+        }
+
+        // Swap fields a and b.
+        var temp = this.a;
+        this.a = this.b;
+        this.b = temp;
+    }
+
+    // string returns the field as a string.
+    string() {
+        return this.a.string();
+    }
+}
+
+// let's roll!
+
+var l = Life(40, 15);
+for (var i = 0; i < 300; i = i+1) {
+    // Clear screen and print field.
+    print "\f" + l.string();
+    l.step();
+    sleep(30);
 }

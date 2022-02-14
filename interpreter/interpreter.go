@@ -439,7 +439,7 @@ func (i *Interpreter) VisitSetExpr(v *ast.SetExpr) (result interface{}, err erro
 
 	instance, ok := object.(*Instance)
 	if !ok {
-		err = fmt.Errorf("only instances have fields, got %T", object)
+		err = fmt.Errorf("only instances have fields, %T does not have field %q at line %d", object, v.Name.Lexeme, v.Name.Line)
 		return
 	}
 
@@ -500,7 +500,7 @@ func (i *Interpreter) VisitGetExpr(v *ast.GetExpr) (result interface{}, err erro
 
 	instance, ok := object.(*Instance)
 	if !ok {
-		err = errors.New("only instances have properties")
+		err = fmt.Errorf("only instances have properties, %T does not have field %q at line %d", object, v.Name.Lexeme, v.Name.Line)
 		return
 	}
 

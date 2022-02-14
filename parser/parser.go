@@ -44,6 +44,7 @@ func (p *ParsingErr) Error() string {
 		if index >= 9 {
 			b.WriteString("too many errors, more contents omitted...")
 			b.WriteRune('\n')
+			return b.String()
 		}
 	}
 

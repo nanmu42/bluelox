@@ -67,7 +67,7 @@ func (i *Instance) Get(name *token.Token) (property interface{}, err error) {
 		return method.Bind(i), nil
 	}
 
-	err = fmt.Errorf("undefiend property %q", name.Lexeme)
+	err = fmt.Errorf("undefiend property %q at line %d", name.Lexeme, name.Line)
 	return
 }
 

@@ -243,6 +243,102 @@ C().test();
 	// A method
 }
 
+func ExampleLox_resolving() {
+	const code = `
+class Cell {
+    init(field) {
+        // on or off
+        this.s = false;
+
+        // which field does this cell belongs to
+        this.field = field;
+
+        // neighbors, Cell
+        this.up = nil;
+        this.right = nil;
+        this.down = nil;
+        this.left = nil;
+    }
+}
+
+class Field {
+    // weight and height
+    init(w, h) {
+        this.w = w;
+        this.h = h;
+
+        // upper-left cell
+        this.root = Cell(this);
+
+        // weaving cells
+        // Phase 1:
+        // O ↔ O ↔ O
+        // ↕
+        // O ↔ O ↔ O
+        // ↕
+        // O ↔ O ↔ O
+        var head = this.root;
+        var tail = head;
+        for (var col = 1; col < this.w; col = col+1) {
+            var newTail = Cell(this);
+            newTail.left = tail;
+            tail.right = newTail;
+            tail = newTail;
+        }
+
+        for (var row = 1; row < this.h; row = row+1) {
+            var newHead = Cell(this);
+            newHead.up = head;
+            head.down = newHead;
+            head = newHead;
+
+            tail = head;
+            for (var col = 1; col < this.w; col = col+1) {
+                var newTail = Cell(this);
+                newTail.left = tail;
+                tail.right = newTail;
+                tail = newTail;
+            }
+        }
+
+
+
+        // Phase 2:
+        // O - O - O
+        // |   ↕   ↕
+        // O - O - O
+        // |   ↕   ↕
+        // O - O - O
+        var rowEnds = this.root;
+        for (var row = 1; row < this.h; row = row+1) {
+            var head = rowEnds;
+            rowEnds = rowEnds.down;
+            var tail = rowEnds;
+			print this.root.down.right;
+			print tail;
+			print rowEnds;
+			print rowEnds.right;
+			print tail.right;
+		}
+	}
+}
+
+var l = Field(2, 2);
+`
+
+	l := NewLox(os.Stdout)
+	err := l.Run(context.TODO(), []byte(code))
+	if err != nil {
+		panic(err)
+	}
+	// Output:
+	// Cell instance
+	// Cell instance
+	// Cell instance
+	// Cell instance
+	// Cell instance
+}
+
 func ExampleLox_print_class() {
 	const code = `
 class DevonshireCream {
