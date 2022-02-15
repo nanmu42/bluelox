@@ -9,8 +9,6 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
-    <!--  TODO: remove me  -->
-    <meta http-equiv=refresh content="0; url=/en/">
     <noscript>
         <meta http-equiv=refresh content="0; url=/en/">
     </noscript>
@@ -36,11 +34,11 @@
             return 'en'
         }
         const preferLang = getFirstBrowserLanguage()
-        // if (preferLang.indexOf('zh') !== -1) {
-        //     window.location.replace('/zh-cn/')
-        // } else {
-        //     window.location.replace('/en/')
-        // }
+        if (preferLang.indexOf('zh') !== -1) {
+            window.location.replace('/zh-cn/')
+        } else {
+            window.location.replace('/en/')
+        }
     })()</script>
     <style>
         body {
@@ -64,7 +62,7 @@
 <h2><a href=/en/>English</a></h2>
 <h2><a href=/zh-cn/>中文</a></h2>
 <footer>
-    <p>China ICP License No: <a href=http://beian.miit.gov.cn/ rel="nofollow noopener"
+    <p>China ICP License No: <a href="http://beian.miit.gov.cn/" rel="nofollow noopener"
         target=_blank>滇ICP备17001267号-1</a></p>
 </footer>
 </body>

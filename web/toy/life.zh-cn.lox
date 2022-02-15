@@ -1,0 +1,311 @@
+// 下面是一个康威生命游戏（Conway's Game of Life）的实现。
+//
+// 生命游戏是一个零玩家游戏。它包括一个二维矩形世界，这个世界中的每个方格居住着一个活着的或死了的细胞。
+// 一个细胞在下一个时刻生死取决于相邻八个方格中活着的或死了的细胞的数量。
+// 如果相邻方格活着的细胞数量过多，这个细胞会因为资源匮乏而在下一个时刻死去；
+// 相反，如果周围活细胞过少，这个细胞会因太孤单而死去。
+// 实践中，玩家可以设定周围活细胞的数目怎样时才适宜该细胞的生存。
+//
+// https://zh.wikipedia.org/zh-cn/%E5%BA%B7%E5%A8%81%E7%94%9F%E5%91%BD%E6%B8%B8%E6%88%8F
+//
+// 因为Lox没有数组这个概念，
+// 让我们使用类似链表的结构来构建棋盘吧。
+
+// 细胞，棋盘上的最小单元
+class Cell {
+	init(field) {
+		// 生存/死亡
+		this.s = false;
+
+		// 细胞归属的棋盘
+		this.field = field;
+
+		// 细胞的邻居
+		this.up = nil;
+		this.right = nil;
+		this.down = nil;
+		this.left = nil;
+	}
+
+	// isAlive 返回细胞当前是否生存
+	isAlive() {
+		return this.s;
+	}
+
+	// set 更新细胞的生存状态
+	set(isAlive) {
+		this.s = isAlive;
+	}
+
+	// next 返回细胞在下一个游戏回合的生存状态
+	next() {
+		var alive = 0;
+		if (this.up.isAlive()) {
+			alive = alive + 1;
+		}
+		if (this.up.right.isAlive()) {
+			alive = alive + 1;
+		}
+		if (this.right.isAlive()) {
+			alive = alive + 1;
+		}
+		if (this.right.down.isAlive()) {
+			alive = alive + 1;
+		}
+		if (this.down.isAlive()) {
+			alive = alive + 1;
+		}
+		if (this.down.left.isAlive()) {
+			alive = alive + 1;
+		}
+		if (this.left.isAlive()) {
+			alive = alive + 1;
+		}
+		if (this.left.up.isAlive()) {
+			alive = alive + 1;
+		}
+
+		// 根据游戏规则：
+		//   正好有三个邻居：生存
+		//   正好有两个邻居：保持当前状态不变
+		//   其他情况：死亡
+		return alive == 3 or alive == 2 and this.isAlive();
+	}
+}
+
+// randomBool 调整这个函数以改变初始情况下生存的细胞比例，当前为 1/5
+fun randomBool() {
+	return randN(5) < 1;
+}
+
+// 棋盘
+class Field {
+	// 棋盘宽度和高度
+	init(w, h) {
+		this.w = w;
+		this.h = h;
+
+		// 棋盘的左上角
+		this.root = Cell(this);
+
+		// 构建棋盘，把各个细胞连接起来。
+		// 第一阶段：
+		// O ↔ O ↔ O
+		// ↕
+		// O ↔ O ↔ O
+		// ↕
+		// O ↔ O ↔ O
+		var head = this.root;
+		var tail = head;
+		for (var col = 1; col < this.w; col = col+1) {
+			var newTail = Cell(this);
+			newTail.left = tail;
+			tail.right = newTail;
+			tail = newTail;
+		}
+
+		for (var row = 1; row < this.h; row = row+1) {
+			var newHead = Cell(this);
+			newHead.up = head;
+			head.down = newHead;
+			head = newHead;
+
+			tail = head;
+			for (var col = 1; col < this.w; col = col+1) {
+				var newTail = Cell(this);
+				newTail.left = tail;
+				tail.right = newTail;
+				tail = newTail;
+			}
+		}
+
+		// 第二阶段：
+		// O - O - O
+		// |   ↕   ↕
+		// O - O - O
+		// |   ↕   ↕
+		// O - O - O
+		var rowEnds = this.root;
+		for (var row = 1; row < this.h; row = row+1) {
+			var head = rowEnds;
+			rowEnds = rowEnds.down;
+			var tail = rowEnds;
+			for (var col = 1; col < this.w; col = col+1) {
+				head = head.right;
+				tail = tail.right;
+				head.down = tail;
+				tail.up = head;
+			}
+		}
+
+		// 第三阶段：
+		// ↕   ↕   ↕
+		// O - O - O
+		// |   |   |
+		// O - O - O
+		// |   |   |
+		// O - O - O
+		// ↕   ↕   ↕
+		head = this.root;
+		tail = this.root;
+		for (var row = 1; row < this.h; row = row+1) {
+			tail = tail.down;
+		}
+		head.up = tail;
+		tail.down = head;
+		for (var col = 1; col < this.w; col = col+1) {
+			head = head.right;
+			tail = tail.right;
+			head.up = tail;
+			tail.down = head;
+		}
+
+		// 第四阶段：
+		//   |   |   |
+		// ↔ O - O - O ↔
+		//   |   |   |
+		// ↔ O - O - O ↔
+		//   |   |   |
+		// ↔ O - O - O ↔
+		//   |   |   |
+		head = this.root;
+		tail = this.root;
+		for (var col = 1; col < this.w; col = col+1) {
+			tail = tail.right;
+		}
+		head.left = tail;
+		tail.right = head;
+		for (var row = 1; row < this.h; row = row+1) {
+			head = head.down;
+			tail = tail.down;
+			head.left = tail;
+			tail.right = head;
+		}
+	}
+
+// string 以文本表示返回当前棋盘的状态
+	string() {
+		var s = "";
+		var head = this.root;
+		var cell = head;
+
+		if (cell.isAlive()) {
+			s = s+"*";
+		} else {
+			s = s+" ";
+		}
+		for (var col = 1; col < this.w; col = col+1) {
+			cell = cell.right;
+			if (cell.isAlive()) {
+				s = s+"*";
+			} else {
+				s = s+" ";
+			}
+		}
+
+		for (var row = 1; row < this.h; row = row+1) {
+			s = s+"\n";
+			head = head.down;
+			cell = head;
+			if (cell.isAlive()) {
+				s = s+"*";
+			} else {
+				s = s+" ";
+			}
+
+			for (var col = 1; col < this.w; col = col+1) {
+				cell = cell.right;
+				if (cell.isAlive()) {
+					s = s+"*";
+				} else {
+					s = s+" ";
+				}
+			}
+		}
+
+		return s;
+	}
+
+	// randomize 随机化棋盘状态
+	randomize() {
+		var head = this.root;
+		var cell = head;
+		cell.set(randomBool());
+		for (var col = 1; col < this.w; col = col+1) {
+			cell = cell.right;
+			cell.set(randomBool());
+		}
+
+		for (var row = 1; row < this.h; row = row+1) {
+			head = head.down;
+			var cell = head;
+			cell.set(randomBool());
+			for (var col = 1; col < this.w; col = col+1) {
+						cell = cell.right;
+						cell.set(randomBool());
+			}
+		}
+	}
+}
+
+// 游戏本体
+class Life {
+	// 棋盘宽度和高度
+	init(w, h) {
+		this.w = w;
+		this.h = h;
+
+		// 使用了两张同样大小的棋盘以保存游戏状态和推演下一个状态
+		this.a = Field(w, h);
+		this.a.randomize();
+
+		this.b = Field(w, h);
+	}
+
+	// step 推进游戏进度到下一回合，计算并更新所有细胞的状态。
+	step() {
+		var aHead = this.a.root;
+		var bHead = this.b.root;
+		var aCell = aHead;
+		var bCell = bHead;
+		bCell.set(aCell.next());
+		for (var col = 1; col < this.w; col = col+1) {
+			aCell = aCell.right;
+			bCell = bCell.right;
+			bCell.set(aCell.next());
+		}
+
+		for (var row = 1; row < this.h; row = row+1) {
+			aHead = aHead.down;
+			bHead = bHead.down;
+			aCell = aHead;
+			bCell = bHead;
+			bCell.set(aCell.next());
+			for (var col = 1; col < this.w; col = col+1) {
+				aCell = aCell.right;
+				bCell = bCell.right;
+				bCell.set(aCell.next());
+			}
+		}
+
+		// Swap fields a and b.
+		var temp = this.a;
+		this.a = this.b;
+		this.b = temp;
+	}
+
+	// string 以文本形式返回当前游戏的状态。
+	string() {
+		return this.a.string();
+	}
+}
+
+// 让我们开始吧！
+
+var l = Life(40, 15);
+for (var i = 0; i < 300; i = i+1) {
+	// 使用 \f 可以清除屏幕，然后打印当前的游戏状态。
+	print "\f" + l.string();
+	l.step();
+	sleep(20);
+}

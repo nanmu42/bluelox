@@ -1,0 +1,27 @@
+// 使用 π 的莱布尼茨公式（Leibniz formula for π）计算圆周率 π
+// https://zh.wikipedia.org/wiki/%CE%A0%E7%9A%84%E8%8E%B1%E5%B8%83%E5%B0%BC%E8%8C%A8%E5%85%AC%E5%BC%8F
+// BlueLox 是一个基于AST语法树的解释器，
+// 如你所见，它不是特别高效。
+
+fun item(n) {
+	var denominator = 2*n+1;
+	var sign = 1;
+	for (var i = 0; i < n; i = i+1) {
+		sign = sign * -1;
+	}
+	return sign / denominator;
+}
+
+fun leibniz(k) {
+	var quarter = 0;
+	for (var i = 0; i < k; i = i+1) {
+		quarter = quarter + item(i);
+	}
+
+	return 4*quarter;
+}
+
+// 你可以泡一杯茶，然后试试
+// 500, 1000, 2000...
+// 相信我，你会真的需要一杯茶的。
+print leibniz(200);

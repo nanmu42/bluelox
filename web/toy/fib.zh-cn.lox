@@ -1,0 +1,25 @@
+// fib 返回一个闭包函数，
+// 返回的函数每次调用都会返回下一个斐波那契（Fibonacci）数。
+fun fib() {
+	var a = 0;
+	var b = 1;
+
+	fun calc() {
+		var c = b;
+		b = a+b;
+		a = c;
+
+		return a;
+	}
+
+	return calc;
+}
+
+var f = fib();
+
+print f();
+print f();
+print f();
+print f();
+print f();
+print f();

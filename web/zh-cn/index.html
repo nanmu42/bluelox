@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+    <title>Lox Playground - 在你的浏览器中运行你的 Lox 代码</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel=alternate href="/en" hreflang="en">
+    <meta name="description" content="Lox Playground 可以让你借助 BlueLox 的 WASM 版本在浏览器中运行你的Lox代码。 BlueLox 是一个基于AST语法数的Lox解释器，使用Golang实现。">
+</head>
+<body>
+<main>
+    <div class="PlayPage">
+        <div class="Playground-controls">
+            <h1 class="Playground-title">The Lox Playground</h1>
+            <div class="Playground-buttons">
+                <button id="run" title="运行这段代码 [ctrl-enter]" class="Button Button--primary js-playgroundRunEl">运行</button>
+            </div>
+            <select aria-label="代码示例" class="Playground-selectExample js-playgroundToysEl">
+                <option value="hello.zh-cn.lox">Hello, 世界！</option>
+                <option value="life.zh-cn.lox">康威生命游戏</option>
+                <option value="fib.zh-cn.lox">斐波那契闭包</option>
+                <option value="pi.zh-cn.lox">π的莱布尼茨公式</option>
+                <option value="clear.zh-cn.lox">清空屏幕</option>
+                <option value="sleep.zh-cn.lox">暂停执行</option>
+            </select>
+        </div>
+        <div class="Playground-inputContainer">
+            <div id="wrap">
+            <textarea id="code" name="code" class="Playground-input js-playgroundCodeEl" autocorrect="off" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Try Lox">// 你可以编辑这里的代码！
+// 点击即可开始输入。
+//
+// 你可以通过右上角的各个例子熟悉Lox语言。
+print "Hello, 世界";</textarea>
+            </div>
+        </div>
+        <div class="Playground-outputContainer">
+            <pre class="Playground-output js-playgroundOutputPreEl"><noscript>Hello, 世界</noscript></pre>
+        </div>
+        <div class="PlayAbout">
+            <p><b>关于 Lox Playground</b></p>
+            <p>
+                Lox Playground 可以让你借助 BlueLox 的 WASM 版本在浏览器中运行你的 Lox 代码。
+                <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox</a>
+                是一个基于AST语法数的 Lox 解释器，使用 Golang 实现。
+            </p>
+            <p>
+                Lox 是 Robert Nystrom 设计的编程语言，在他精辟的书
+                <a href="https://craftinginterpreters.com/" rel="noopener" target="_blank">《Crafting Interpreters（手写两个解释器）》</a>
+                中作为实现对象。他在书里实现了一个Java的AST语法树解释器（jlox）和一个C的机器码解释器（clox），
+                附带循循善诱的解释，走心的手绘插图以及满满一袋关于早餐的比喻和笑话。
+            </p>
+            <p>
+                Lox Playground 可以作为你在学习和编程时的试错工具和参考实现。
+            </p>
+            <p>
+                <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox</a> 的实现和 jlox 几乎一致，但有以下例外：
+            </p>
+            <ul>
+                <li>语法解析（lexer）以 UTF-8 码点（而不是 byte）为最小工作单位，并且它会处理字符串中的这些转义字符：<code>\a</code>, <code>\b</code>, <code>\f</code>, <code>\n</code>, <code>\r</code>, <code>\t</code>, <code>\v</code>, <code>\\</code> 和 <code>\"</code>。</li>
+                <li>报错信息不会和 jlox 逐字逐句地相同，但是它们在语意上会保持一致。</li>
+                <li>为了支持 Playground 的例子，我新增了两个原生函数<code>sleep(millisecond)</code> 和 <code>randN(n)</code>。</li>
+            </ul>
+            <p>
+                Lox Playground 须要你的浏览器支持 WASM. 如果你遇到了问题，可以在
+                <a href="https://github.com/nanmu42/bluelox" rel="noopener" target="_blank">BlueLox 的仓库</a>
+                进行反馈。欢迎建议，贡献和 star ！
+            </p>
+        </div>
+    </div>
+    <script src="/js/jquery-linedtextarea.js" defer></script>
+    <script src="/js/playsite.js" defer></script>
+</main>
+<footer class="Footer">
+    <div class="Container">
+        <p>
+            Lox 编程语言和 <a href="https://craftinginterpreters.com/" rel="noopener" target="_blank">《Crafting Interpreters》</a>（<a
+                href="/licenses/craftingInterpreters.txt">许可</a>）是
+            <a href="https://twitter.com/intent/user?screen_name=munificentbob" rel="noopener" target="_blank">Robert Nystrom</a> 的作品。
+        </p>
+        <p>
+            Lox Playground 从 <a href="https://go.dev/play/" rel="noopener" target="_blank">Go Playground</a>（<a
+                href="/licenses/go.txt">许可</a>）汲取了很多点子、风格以及实现。
+        </p>
+        <p class="author">© 2021-2022 LI Zhennan</p>
+        <p><a href="http://beian.miit.gov.cn/" rel="nofollow noopener" target=_blank>滇ICP备17001267号-1</a></p>
+    </div>
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/wasm_exec.js"></script>
+    <script src="/js/playground.js"></script>
+</footer>
+</body>
+</html>
