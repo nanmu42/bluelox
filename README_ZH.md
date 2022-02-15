@@ -44,6 +44,8 @@ Lox 编程语言和 [Crafting Interpreters](https://craftinginterpreters.com/)
 
 Lox Playground 从 [Go Playground](https://go.dev/play/) 汲取了很多点子、风格以及实现。
 
+项目 Logo 生成于 [Gopherize.me](https://gopherize.me).
+
 ## License
 
 Copyright © 2022 LI Zhennan

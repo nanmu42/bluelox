@@ -4,7 +4,7 @@
 
 [![GoDoc](https://godoc.org/github.com/nanmu42/bluelox?status.svg)](https://godoc.org/github.com/nanmu42/bluelox)
 
-BlueLox is a Tree-walking interpreter implemented in Golang for Lox.
+BlueLox is a tree-walking interpreter implemented in Golang for Lox.
 
 Lox is a programing language by Robert Nystrom, 
 introduced in his wonderful book [Crafting Interpreters](https://craftinginterpreters.com/), 
@@ -44,6 +44,8 @@ Lox programing language and [Crafting Interpreters](https://craftinginterpreters
 are works by [Robert Nystrom](https://twitter.com/intent/user?screen_name=munificentbob).
 
 The Lox Playground borrows lots of ideas, code and styles from [Go Playground](https://go.dev/play/).
+
+Logo generated at [Gopherize.me](https://gopherize.me).
 
 ## License
 
