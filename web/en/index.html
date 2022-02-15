@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="manifest" href="/site.webmanifest">
     <link rel="stylesheet" href="/css/styles.css">
-    <!--  TODO: add translation link meta  -->
+    <link rel=alternate href="/zh-cn" hreflang="zh-cn">
     <meta name="description" content="The Lox Playground lets you run your own Lox script in your browser via WASM version of BlueLox, a tree-walking interpreter implemented in Golang for Lox.">
 </head>
 <body>
@@ -19,7 +19,6 @@
             <h1 class="Playground-title">The Lox Playground</h1>
             <div class="Playground-buttons">
                 <button id="run" title="Run this code [ctrl-enter]" class="Button Button--primary js-playgroundRunEl">Run</button>
-                <button id="fmt" title="Format this code [alt-enter]" class="Button js-playgroundFmtEl">Format</button>
             </div>
             <select aria-label="Code examples" class="Playground-selectExample js-playgroundToysEl">
                 <option value="hello.lox">Hello, World!</option>
@@ -65,7 +64,6 @@ print "Hello, 世界";</textarea>
                 <li>The lexer works on UTF-8 code point level instead of byte level, and it handles following escaped char: <code>\a</code>, <code>\b</code>, <code>\f</code>, <code>\n</code>, <code>\r</code>, <code>\t</code>, <code>\v</code>, <code>\\</code> and <code>\"</code></li>
                 <li>The error message is not the same word for word, although the efforts making them semantically equal has been made.</li>
                 <li>Two extra native function, <code>sleep(millisecond)</code> and <code>randN(n)</code>, are added to support playground examples.</li>
-                <li>BlueLox takes care of comments during lexing and parsing, so that <code>loxfmt</code> works.</li>
             </ul>
             <p>
                 Browser WASM support is required. Raise questions and issues to

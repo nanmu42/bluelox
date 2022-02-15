@@ -16,7 +16,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         'codeEl': '.js-playgroundCodeEl',
         'outputPreEl': '.js-playgroundOutputPreEl',
         'runEl': '.js-playgroundRunEl',
-        'fmtEl': '.js-playgroundFmtEl',
         'toysEl': '.js-playgroundToysEl',
         'enableShortcuts': true,
     })

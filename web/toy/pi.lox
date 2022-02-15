@@ -4,21 +4,21 @@
 // As you can see, it is not very efficient.
 
 fun item(n) {
-    var denominator = 2*n+1;
-    var sign = 1;
-    for (var i = 0; i < n; i = i+1) {
-        sign = sign * -1;
-    }
-    return sign / denominator;
+	var denominator = 2*n+1;
+	var sign = 1;
+	for (var i = 0; i < n; i = i+1) {
+		sign = sign * -1;
+	}
+	return sign / denominator;
 }
 
 fun leibniz(k) {
-    var quarter = 0;
-    for (var i = 0; i < k; i = i+1) {
-        quarter = quarter + item(i);
-    }
+	var quarter = 0;
+	for (var i = 0; i < k; i = i+1) {
+		quarter = quarter + item(i);
+	}
 
-    return 4*quarter;
+	return 4*quarter;
 }
 
 // Grab a cup of tea

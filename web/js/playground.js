@@ -117,7 +117,6 @@ function PlaygroundOutput(el) {
     //  codeEl - code editor element
     //  outputPreEl - program output pre element
     //  runEl - run button element
-    //  fmtEl - fmt button element (optional)
     //  toysEl - toys select element (optional)
     //  enableShortcuts - whether to enable shortcuts
     function playground(opts) {
@@ -220,7 +219,7 @@ function PlaygroundOutput(el) {
         }
 
         function fmtAnd(run) {
-            // TODO: rewrite me
+            // Note(nanmu42): format is hard, let's leave it for now.
             run();
         }
 
@@ -233,7 +232,6 @@ function PlaygroundOutput(el) {
         }
 
         $(opts.runEl).click(run);
-        $(opts.fmtEl).click(fmt);
 
         if (opts.toysEl !== null) {
             $(opts.toysEl).bind('change', function() {
