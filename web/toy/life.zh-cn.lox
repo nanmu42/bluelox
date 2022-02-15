@@ -73,9 +73,9 @@ class Cell {
 	}
 }
 
-// randomBool 调整这个函数以改变初始情况下生存的细胞比例，当前为 1/5
+// randomBool 调整这个函数以改变初始情况下生存的细胞比例，当前为 1/6
 fun randomBool() {
-	return randN(5) < 1;
+	return randN(6) < 1;
 }
 
 // 棋盘
