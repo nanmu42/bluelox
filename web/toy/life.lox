@@ -173,7 +173,7 @@ class Field {
 		}
 	}
 
-// string returns the field as a string.
+	// string returns the field as a string.
 	string() {
 		var s = "";
 		var head = this.root;

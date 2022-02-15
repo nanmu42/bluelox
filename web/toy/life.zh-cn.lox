@@ -183,7 +183,7 @@ class Field {
 		}
 	}
 
-// string 以文本表示返回当前棋盘的状态
+	// string 以文本表示返回当前棋盘的状态
 	string() {
 		var s = "";
 		var head = this.root;
