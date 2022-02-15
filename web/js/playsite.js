@@ -5,6 +5,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     output.text('Loading BlueLox WASM...')
     try {
         await loadBlueLox()
+        console.log(window.loxversion())
         output.empty()
     } catch (e) {
         output.text('Failed to load BlueLox WASM: ' + e)

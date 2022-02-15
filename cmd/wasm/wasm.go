@@ -18,6 +18,9 @@ func main() {
 	js.Global().Set("loxrun", asyncFuncOf(runner.Run))
 	js.Global().Set("loxfmt", asyncFuncOf(runner.Fmt))
 	js.Global().Set("loxstop", asyncFuncOf(runner.Stop))
+	js.Global().Set("loxversion", js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+		return version.FullNameWithBuildDate
+	}))
 
 	select {}
 }

@@ -21,6 +21,7 @@ web: wasm dir
 	rm -rf web
 
 wasm: dir
+	go generate ./... && \
 	cd cmd/wasm && \
 	GOOS=js GOARCH=wasm go build -trimpath -ldflags "-s -w -X github.com/nanmu42/bluelox/version.Version=$(VERSION) -X github.com/nanmu42/bluelox/version.BuildDate=$(BUILD)" -o bluelox.wasm && \
 	cp bluelox.wasm $(PWD)/bin/bluelox.wasm
@@ -28,6 +29,7 @@ wasm: dir
 bluelox: bluelox.bin
 
 %.bin: dir
+	go generate ./... && \
 	cd cmd/$* && \
 	go build -trimpath -ldflags "-s -w -X github.com/nanmu42/bluelox/version.Version=$(VERSION) -X github.com/nanmu42/bluelox/version.BuildDate=$(BUILD)" && \
 	cp $* $(PWD)/bin/$*
