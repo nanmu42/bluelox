@@ -3,12 +3,18 @@
 package main
 
 import (
+	"math/rand"
 	"syscall/js"
+	"time"
 
 	"github.com/nanmu42/bluelox/version"
 )
 
 var Promise = js.Global().Get("Promise")
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 func main() {
 	version.SetSubName("wasm")

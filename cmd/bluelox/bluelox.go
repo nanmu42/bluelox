@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/nanmu42/bluelox/version"
 
@@ -14,6 +16,10 @@ import (
 
 	"github.com/nanmu42/bluelox/lox"
 )
+
+func init() {
+	rand.Seed(time.Now().Unix())
+}
 
 func main() {
 	var (
